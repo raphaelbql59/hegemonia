@@ -1,0 +1,451 @@
+// Hegemonia Database Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// PLAYERS & AUTHENTICATION
+// ============================================
+
+model Player {
+  uuid            String   @id @db.Uuid
+  username        String   @unique
+  email           String?  @unique
+  passwordHash    String?
+
+  // Game Data
+  balance         Int      @default(1000) // HGN currency
+  lastLogin       DateTime @default(now())
+  playtime        Int      @default(0) // In minutes
+  firstJoin       DateTime @default(now())
+
+  // Nation relationship
+  nationId        String?  @db.Uuid
+  nation          Nation?  @relation(fields: [nationId], references: [id])
+  role            NationRole @default(CITIZEN)
+
+  // Profession & Skills
+  profession      Profession @default(NONE)
+  level           Int      @default(1)
+  experience      Int      @default(0)
+
+  // Stats
+  kills           Int      @default(0)
+  deaths          Int      @default(0)
+  blocksPlaced    Int      @default(0)
+  blocksBroken    Int      @default(0)
+
+  // Relations
+  transactions    Transaction[]
+  warParticipations WarParticipation[]
+  researches      Research[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([nationId])
+  @@index([username])
+  @@map("players")
+}
+
+enum NationRole {
+  LEADER
+  MINISTER_ECONOMY
+  MINISTER_DEFENSE
+  MINISTER_INTERIOR
+  CITIZEN
+}
+
+enum Profession {
+  NONE
+  MINER
+  FARMER
+  MERCHANT
+  SOLDIER
+  ENGINEER
+  DIPLOMAT
+}
+
+// ============================================
+// NATIONS
+// ============================================
+
+model Nation {
+  id              String   @id @default(uuid()) @db.Uuid
+  name            String   @unique
+  tag             String   @unique @db.VarChar(5) // e.g., "FRA" for France
+
+  // Government
+  governmentType  GovernmentType
+  foundedAt       DateTime @default(now())
+
+  // Economy
+  treasury        Int      @default(10000)
+  taxRate         Float    @default(0.10) // 10%
+
+  // Location
+  capitalX        Int?
+  capitalY        Int?
+  capitalZ        Int?
+  capitalWorld    String   @default("world")
+
+  // Diplomacy
+  isActive        Boolean  @default(true)
+
+  // Relations
+  members         Player[]
+  territories     Territory[]
+  researchesDone  TechnologyUnlock[]
+  warsAsAttacker  War[]    @relation("AttackerWars")
+  warsAsDefender  War[]    @relation("DefenderWars")
+  treaties        Treaty[]
+  transactions    Transaction[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([tag])
+  @@index([name])
+  @@map("nations")
+}
+
+enum GovernmentType {
+  MONARCHY
+  DEMOCRACY
+  DICTATORSHIP
+  REPUBLIC
+}
+
+// ============================================
+// TERRITORIES
+// ============================================
+
+model Territory {
+  id              String   @id @default(uuid()) @db.Uuid
+  regionName      String   @unique
+
+  // Ownership
+  nationId        String?  @db.Uuid
+  nation          Nation?  @relation(fields: [nationId], references: [id])
+
+  // Geography
+  coordinates     String   // JSON polygon coordinates
+  continent       String
+
+  // Resources
+  resourceType    ResourceType?
+  productionRate  Int      @default(1)
+
+  // Control
+  controlledSince DateTime @default(now())
+  isContested     Boolean  @default(false)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([nationId])
+  @@index([continent])
+  @@map("territories")
+}
+
+enum ResourceType {
+  OIL
+  GOLD
+  DIAMONDS
+  COAL
+  IRON
+  RARE_EARTH
+  FOOD
+}
+
+// ============================================
+// WARFARE
+// ============================================
+
+model War {
+  id              String   @id @default(uuid()) @db.Uuid
+
+  // Participants
+  attackerId      String   @db.Uuid
+  attacker        Nation   @relation("AttackerWars", fields: [attackerId], references: [id])
+  defenderId      String   @db.Uuid
+  defender        Nation   @relation("DefenderWars", fields: [defenderId], references: [id])
+
+  // War Info
+  warType         WarType
+  casusBelli      String
+
+  // Status
+  status          WarStatus @default(ACTIVE)
+  startDate       DateTime @default(now())
+  endDate         DateTime?
+
+  // Victory Conditions
+  attackerPoints  Int      @default(0)
+  defenderPoints  Int      @default(0)
+
+  // Outcome
+  winnerId        String?  @db.Uuid
+  treaty          String?  // JSON treaty terms
+
+  // Relations
+  participants    WarParticipation[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([attackerId])
+  @@index([defenderId])
+  @@index([status])
+  @@map("wars")
+}
+
+enum WarType {
+  CONQUEST
+  ECONOMIC
+  INDEPENDENCE
+  PUNITIVE
+  TOTAL
+}
+
+enum WarStatus {
+  ACTIVE
+  ENDED
+  TRUCE
+}
+
+model WarParticipation {
+  id              String   @id @default(uuid()) @db.Uuid
+
+  warId           String   @db.Uuid
+  war             War      @relation(fields: [warId], references: [id])
+
+  playerId        String   @db.Uuid
+  player          Player   @relation(fields: [playerId], references: [uuid])
+
+  // Stats
+  kills           Int      @default(0)
+  deaths          Int      @default(0)
+  pointsEarned    Int      @default(0)
+
+  joinedAt        DateTime @default(now())
+
+  @@unique([warId, playerId])
+  @@index([warId])
+  @@index([playerId])
+  @@map("war_participations")
+}
+
+// ============================================
+// DIPLOMACY
+// ============================================
+
+model Treaty {
+  id              String   @id @default(uuid()) @db.Uuid
+
+  // Parties (simplified - one nation per treaty, extend with junction table if needed)
+  nationId        String   @db.Uuid
+  nation          Nation   @relation(fields: [nationId], references: [id])
+
+  partnerNationTag String  // Tag of partner nation
+
+  // Treaty Info
+  treatyType      TreatyType
+  terms           String   // JSON terms
+
+  // Duration
+  signedAt        DateTime @default(now())
+  expiresAt       DateTime?
+  isActive        Boolean  @default(true)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([nationId])
+  @@index([partnerNationTag])
+  @@map("treaties")
+}
+
+enum TreatyType {
+  ALLIANCE
+  NON_AGGRESSION
+  TRADE
+  PEACE
+}
+
+// ============================================
+// ECONOMY
+// ============================================
+
+model Transaction {
+  id              String   @id @default(uuid()) @db.Uuid
+
+  // Parties
+  fromPlayerId    String?  @db.Uuid
+  fromPlayer      Player?  @relation(fields: [fromPlayerId], references: [uuid])
+
+  toNationId      String?  @db.Uuid
+  toNation        Nation?  @relation(fields: [toNationId], references: [id])
+
+  // Transaction details
+  amount          Int
+  type            TransactionType
+  description     String?
+
+  timestamp       DateTime @default(now())
+
+  @@index([fromPlayerId])
+  @@index([toNationId])
+  @@index([type])
+  @@index([timestamp])
+  @@map("transactions")
+}
+
+enum TransactionType {
+  TRADE
+  SALARY
+  TAX
+  WAR_REPARATION
+  SHOP_PURCHASE
+  SHOP_SALE
+  TRANSFER
+}
+
+// ============================================
+// TECHNOLOGY
+// ============================================
+
+model Technology {
+  id              String   @id @default(uuid()) @db.Uuid
+  name            String   @unique
+  description     String
+
+  // Progression
+  era             Era
+  tier            Int
+
+  // Requirements
+  prerequisiteIds String[] // Array of tech IDs required
+  cost            Int      // HGN cost
+  researchTime    Int      // In minutes
+
+  // Effects (JSON)
+  effects         String   // JSON describing unlocks
+
+  // Relations
+  unlocks         TechnologyUnlock[]
+
+  createdAt       DateTime @default(now())
+
+  @@index([era])
+  @@index([tier])
+  @@map("technologies")
+}
+
+enum Era {
+  MEDIEVAL
+  INDUSTRIAL
+  MODERN
+  FUTURISTIC
+}
+
+model TechnologyUnlock {
+  id              String   @id @default(uuid()) @db.Uuid
+
+  technologyId    String   @db.Uuid
+  technology      Technology @relation(fields: [technologyId], references: [id])
+
+  nationId        String   @db.Uuid
+  nation          Nation   @relation(fields: [nationId], references: [id])
+
+  unlockedAt      DateTime @default(now())
+
+  @@unique([technologyId, nationId])
+  @@index([nationId])
+  @@index([technologyId])
+  @@map("technology_unlocks")
+}
+
+model Research {
+  id              String   @id @default(uuid()) @db.Uuid
+
+  playerId        String   @db.Uuid
+  player          Player   @relation(fields: [playerId], references: [uuid])
+
+  technologyName  String
+
+  // Progress
+  startedAt       DateTime @default(now())
+  completesAt     DateTime
+  isCompleted     Boolean  @default(false)
+
+  @@index([playerId])
+  @@index([isCompleted])
+  @@map("researches")
+}
+
+// ============================================
+// LAUNCHER & UPDATES
+// ============================================
+
+model LauncherVersion {
+  id              String   @id @default(uuid()) @db.Uuid
+  version         String   @unique
+  releaseNotes    String
+  downloadUrl     String
+
+  isLatest        Boolean  @default(false)
+  isMandatory     Boolean  @default(false)
+
+  releasedAt      DateTime @default(now())
+
+  @@index([version])
+  @@map("launcher_versions")
+}
+
+model ModFile {
+  id              String   @id @default(uuid()) @db.Uuid
+  fileName        String   @unique
+  version         String
+
+  // File Info
+  fileHash        String   // SHA256
+  fileSize        Int      // Bytes
+  downloadUrl     String
+
+  // Metadata
+  isRequired      Boolean  @default(true)
+  category        String   // "core", "economy", "warfare", etc.
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([fileName])
+  @@map("mod_files")
+}
+
+// ============================================
+// NEWS & EVENTS
+// ============================================
+
+model NewsPost {
+  id              String   @id @default(uuid()) @db.Uuid
+  title           String
+  content         String
+  author          String
+
+  // Display
+  imageUrl        String?
+  isPinned        Boolean  @default(false)
+
+  publishedAt     DateTime @default(now())
+
+  @@index([publishedAt])
+  @@map("news_posts")
+}
