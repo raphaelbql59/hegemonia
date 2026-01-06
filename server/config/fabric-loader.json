@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "hegemonia",
+  "version": "1.0.0",
+  "name": "Hegemonia Server",
+  "description": "Custom Minecraft server for Hegemonia",
+  "authors": [
+    "Hegemonia Team"
+  ],
+  "contact": {
+    "homepage": "https://hegemonia.server",
+    "sources": "https://github.com/hegemonia/server"
+  },
+  "license": "MIT",
+  "environment": "server",
+  "entrypoints": {},
+  "depends": {
+    "fabricloader": ">=0.15.0",
+    "minecraft": "1.20.1"
+  }
+}
