@@ -1,0 +1,39 @@
+.map-page {
+  padding: 40px;
+  height: 100%;
+}
+
+.map-container {
+  height: calc(100% - 80px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.map-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-secondary);
+}
+
+.map-placeholder p:first-child {
+  font-size: 72px;
+  margin-bottom: 24px;
+}
+
+.map-placeholder p:nth-child(2) {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+
+.map-description {
+  font-size: 16px;
+  max-width: 400px;
+  text-align: center;
+}
