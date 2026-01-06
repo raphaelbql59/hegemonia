@@ -38,3 +38,11 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+
+# Prisma
+prisma/migrations/
+
+# Docker volumes
+postgres-data/
+postgres-dev-data/
+redis-data/

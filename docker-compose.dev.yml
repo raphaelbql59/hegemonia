@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: hegemonia-db-dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-dev-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: hegemonia
+      POSTGRES_PASSWORD: dev_password
+      POSTGRES_DB: hegemonia
+    restart: unless-stopped
+    networks:
+      - hegemonia-dev
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: hegemonia-redis-dev
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass dev_redis
+    restart: unless-stopped
+    networks:
+      - hegemonia-dev
+
+  # Backend API (Development Mode)
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile.dev
+    container_name: hegemonia-api-dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./api/src:/app/src:delegated
+      - ./api/prisma:/app/prisma:delegated
+      - /app/node_modules
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: "postgresql://hegemonia:dev_password@postgres:5432/hegemonia"
+      REDIS_URL: "redis://:dev_redis@redis:6379"
+      JWT_SECRET: "dev_jwt_secret"
+      RCON_HOST: "localhost"
+      RCON_PORT: 25575
+      RCON_PASSWORD: "dev_rcon"
+      PORT: 3000
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+    networks:
+      - hegemonia-dev
+
+volumes:
+  postgres-dev-data:
+
+networks:
+  hegemonia-dev:
+    driver: bridge
