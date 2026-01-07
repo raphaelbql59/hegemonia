@@ -1,0 +1,23 @@
+name: HegemoniaCore
+version: '${version}'
+main: com.hegemonia.core.HegemoniaCore
+api-version: '1.20'
+author: Hegemonia Team
+description: Core API for all Hegemonia plugins
+website: https://hegemonia.com
+
+load: STARTUP
+
+softdepend:
+  - LuckPerms
+  - Vault
+
+commands: {}
+
+permissions:
+  hegemonia.admin:
+    description: Full administrative access
+    default: op
+  hegemonia.staff:
+    description: Staff access
+    default: false

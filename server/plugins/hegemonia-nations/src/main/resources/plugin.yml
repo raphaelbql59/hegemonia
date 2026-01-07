@@ -1,0 +1,62 @@
+name: HegemoniaNations
+version: '${version}'
+main: com.hegemonia.nations.HegemoniaNations
+api-version: '1.20'
+author: Hegemonia Team
+description: Nation system for Hegemonia - Create and manage nations
+website: https://hegemonia.com
+
+depend:
+  - HegemoniaCore
+
+softdepend:
+  - LuckPerms
+  - Vault
+  - HegemoniaEconomy
+
+commands:
+  nation:
+    description: Main nation command
+    aliases: [n, nations, pays]
+    usage: /<command> [action]
+
+  nadmin:
+    description: Nation admin commands
+    aliases: [nationadmin]
+    usage: /<command> [action]
+    permission: hegemonia.nations.admin
+
+permissions:
+  hegemonia.nations.admin:
+    description: Full nation administrative access
+    default: op
+  hegemonia.nations.create:
+    description: Create a nation
+    default: true
+  hegemonia.nations.join:
+    description: Join a nation
+    default: true
+  hegemonia.nations.invite:
+    description: Invite players to nation
+    default: true
+  hegemonia.nations.kick:
+    description: Kick players from nation
+    default: true
+  hegemonia.nations.promote:
+    description: Promote nation members
+    default: true
+  hegemonia.nations.demote:
+    description: Demote nation members
+    default: true
+  hegemonia.nations.claim:
+    description: Claim territory
+    default: true
+  hegemonia.nations.unclaim:
+    description: Unclaim territory
+    default: true
+  hegemonia.nations.war:
+    description: Declare war
+    default: true
+  hegemonia.nations.ally:
+    description: Manage alliances
+    default: true

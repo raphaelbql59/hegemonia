@@ -1,0 +1,36 @@
+name: HegemoniaWar
+version: '${version}'
+main: com.hegemonia.war.HegemoniaWar
+api-version: '1.20'
+author: Hegemonia Team
+description: War system for Hegemonia - Battles, sieges and conquests
+website: https://hegemonia.com
+
+depend:
+  - HegemoniaCore
+  - HegemoniaNations
+
+softdepend:
+  - HegemoniaEconomy
+
+commands:
+  war:
+    description: Main war command
+    aliases: [guerre, w]
+    usage: /<command> [action]
+
+  battle:
+    description: Battle commands
+    aliases: [bataille]
+    usage: /<command> [action]
+
+permissions:
+  hegemonia.war.admin:
+    description: Full war administrative access
+    default: op
+  hegemonia.war.declare:
+    description: Declare war
+    default: true
+  hegemonia.war.peace:
+    description: Propose peace
+    default: true

@@ -1,0 +1,51 @@
+name: HegemoniaEconomy
+version: '${version}'
+main: com.hegemonia.economy.HegemoniaEconomy
+api-version: '1.20'
+author: Hegemonia Team
+description: Economy system for Hegemonia - Markets, trading and enterprises
+website: https://hegemonia.com
+
+depend:
+  - HegemoniaCore
+  - HegemoniaNations
+
+softdepend:
+  - Vault
+
+commands:
+  economy:
+    description: Main economy command
+    aliases: [eco, money, argent]
+    usage: /<command> [action]
+
+  market:
+    description: Market commands
+    aliases: [marché, bourse]
+    usage: /<command> [action]
+
+  enterprise:
+    description: Enterprise commands
+    aliases: [entreprise, company]
+    usage: /<command> [action]
+
+  pay:
+    description: Pay another player
+    aliases: [payer]
+    usage: /<command> <player> <amount>
+
+  balance:
+    description: Check your balance
+    aliases: [bal, solde]
+    usage: /<command>
+
+permissions:
+  hegemonia.economy.admin:
+    description: Full economy administrative access
+    default: op
+  hegemonia.economy.trade:
+    description: Use the market
+    default: true
+  hegemonia.economy.enterprise:
+    description: Create an enterprise
+    default: true

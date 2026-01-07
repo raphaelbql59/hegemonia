@@ -1,0 +1,93 @@
+# ===========================
+# HegemoniaNations - Configuration
+# ===========================
+
+# Paramètres généraux
+general:
+  # Coût de création d'une nation (H$)
+  nation-creation-cost: 10000
+  # Nombre minimum de membres pour déclarer la guerre
+  min-members-for-war: 3
+  # Durée des invitations (en heures)
+  invite-duration: 24
+  # Intervalle de mise à jour des taxes (en minutes)
+  tax-interval: 60
+
+# Limites
+limits:
+  # Taille maximale du nom de nation
+  max-name-length: 32
+  # Taille minimale du nom de nation
+  min-name-length: 3
+  # Nombre maximum de membres par nation (0 = illimité)
+  max-members: 0
+  # Nombre maximum de territoires par nation (0 = illimité)
+  max-territories: 0
+
+# Protection des territoires
+protection:
+  # Activer la protection des blocs
+  block-protection: true
+  # Activer la protection PvP (pas de dégâts entre alliés)
+  friendly-fire-protection: true
+  # Permettre les explosions de TNT sur son propre territoire
+  allow-tnt-own-territory: true
+  # Permettre les explosions de TNT sur les territoires ennemis
+  allow-tnt-enemy-territory: true
+
+# Messages
+messages:
+  # Préfixe des messages
+  prefix: "<dark_gray>[<gold>Nation</gold>]</dark_gray> "
+
+# Économie
+economy:
+  # Taxe de maintenance quotidienne par territoire
+  territory-upkeep: 50
+  # Taxe de maintenance quotidienne de base
+  base-upkeep: 100
+  # Bonus de revenu par citoyen actif
+  citizen-income-bonus: 10
+
+# Gouvernements - modificateurs
+governments:
+  democracy:
+    tax-modifier: 1.0
+    stability-modifier: 1.1
+    war-cost-modifier: 1.2
+  monarchy:
+    tax-modifier: 1.1
+    stability-modifier: 1.0
+    war-cost-modifier: 1.0
+  dictatorship:
+    tax-modifier: 1.3
+    stability-modifier: 0.8
+    war-cost-modifier: 0.8
+  theocracy:
+    tax-modifier: 0.9
+    stability-modifier: 1.2
+    war-cost-modifier: 1.1
+  oligarchy:
+    tax-modifier: 1.2
+    stability-modifier: 0.9
+    war-cost-modifier: 1.0
+  communism:
+    tax-modifier: 0.7
+    stability-modifier: 1.0
+    war-cost-modifier: 0.9
+  republic:
+    tax-modifier: 1.0
+    stability-modifier: 1.15
+    war-cost-modifier: 1.1
+  federation:
+    tax-modifier: 0.95
+    stability-modifier: 1.1
+    war-cost-modifier: 1.0
+  anarchy:
+    tax-modifier: 0.5
+    stability-modifier: 0.6
+    war-cost-modifier: 0.7
+  empire:
+    tax-modifier: 1.4
+    stability-modifier: 0.85
+    war-cost-modifier: 0.75

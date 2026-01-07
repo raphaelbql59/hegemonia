@@ -1,0 +1,28 @@
+# ===========================
+# HegemoniaCore - Configuration
+# ===========================
+
+# Configuration de la base de données PostgreSQL
+database:
+  host: "postgres"
+  port: 5432
+  name: "hegemonia_main"
+  username: "hegemonia"
+  password: "${POSTGRES_PASSWORD}"
+  pool-size: 10
+
+# Configuration Redis
+redis:
+  host: "redis"
+  port: 6379
+  password: ""
+  database: 0
+
+# Configuration du serveur
+server:
+  # Identifiant unique de ce serveur (lobby, earth, wars, resources, events)
+  id: "earth"
+  # Nom affiché
+  name: "Hegemonia Earth"
+  # Mode debug
+  debug: false

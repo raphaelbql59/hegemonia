@@ -23,7 +23,7 @@ Phase 0  : ████████████████████ 100%  �
 Phase 1  : ████████████░░░░░░░░ 60%  🟢 EN COURS
 Phase 2  : ░░░░░░░░░░░░░░░░░░░░  0%  ⚪ À FAIRE
 Phase 3  : ░░░░░░░░░░░░░░░░░░░░  0%  ⚪ À FAIRE
-Phase 4  : ░░░░░░░░░░░░░░░░░░░░  0%  ⚪ À FAIRE
+Phase 4  : ██████████████░░░░░░ 70%  🟢 EN COURS
 Phase 5  : ░░░░░░░░░░░░░░░░░░░░  0%  ⚪ À FAIRE
 Phase 6  : ░░░░░░░░░░░░░░░░░░░░  0%  ⚪ À FAIRE
 Phase 7  : ░░░░░░░░░░░░░░░░░░░░  0%  ⚪ À FAIRE
@@ -41,7 +41,7 @@ Phase 18 : ░░░░░░░░░░░░░░░░░░░░  0%  ⚪
 Phase 19 : ░░░░░░░░░░░░░░░░░░░░  0%  ⚪ À FAIRE
 Phase 20 : ░░░░░░░░░░░░░░░░░░░░  0%  ⚪ À FAIRE
 
-TOTAL    : ██░░░░░░░░░░░░░░░░░░  8%
+TOTAL    : ███░░░░░░░░░░░░░░░░░ 12%
 ```
 
 ---
@@ -190,26 +190,33 @@ TOTAL    : ██░░░░░░░░░░░░░░░░░░  8%
 
 ---
 
-### ⚪ PHASE 4 : SYSTÈME DE NATIONS (0%)
+### 🟢 PHASE 4 : SYSTÈME DE NATIONS (70%)
 
 **Objectif:** Plugin HegemoniaNations - Cœur du gameplay géopolitique
+**Début:** 2026-01-07
 
 | Tâche | Statut | Priorité | Notes |
 |-------|--------|----------|-------|
-| Setup projet Gradle Kotlin | ⚪ | 🔴 CRITIQUE | Plugin base |
-| Structure classes Nation | ⚪ | 🔴 CRITIQUE | Data models |
-| Système de gouvernement | ⚪ | 🔴 CRITIQUE | Types + rôles |
-| Claims automatiques | ⚪ | 🔴 CRITIQUE | Par région prédéfinie |
-| Gestion citoyens | ⚪ | 🟠 HAUTE | Ajout/retrait |
-| Système ministres | ⚪ | 🟠 HAUTE | Rôles + permissions |
+| Setup projet Gradle Kotlin | ✅ | 🔴 CRITIQUE | Multi-projets configuré |
+| Structure classes Nation | ✅ | 🔴 CRITIQUE | Nation, Player, Territory |
+| Système de gouvernement | ✅ | 🔴 CRITIQUE | 10 types + permissions |
+| Claims automatiques | 🟢 | 🔴 CRITIQUE | TerritoryService créé |
+| Gestion citoyens | ✅ | 🟠 HAUTE | PlayerService complet |
+| Système ministres | ✅ | 🟠 HAUTE | NationRole avec 6 rôles |
 | Système d'élections | ⚪ | 🟡 MOYENNE | Si démocratie |
 | Empire et vassaux | ⚪ | 🟠 HAUTE | Hiérarchie nations |
-| Commandes joueurs | ⚪ | 🔴 CRITIQUE | /nation * |
-| Commandes admin | ⚪ | 🟠 HAUTE | Gestion serveur |
-| Intégration DB | ⚪ | 🔴 CRITIQUE | PostgreSQL |
-| Cache Redis | ⚪ | 🟠 HAUTE | Performances |
+| Commandes joueurs | ✅ | 🔴 CRITIQUE | /nation * (20+ commandes) |
+| Commandes admin | ✅ | 🟠 HAUTE | /nadmin * |
+| Intégration DB | ✅ | 🔴 CRITIQUE | Exposed ORM + tables |
+| Cache Redis | ✅ | 🟠 HAUTE | ConcurrentHashMap + Redis |
 | Tests unitaires | ⚪ | 🟡 MOYENNE | JUnit |
 | Documentation API | ⚪ | 🟡 MOYENNE | KDoc |
+
+**Fichiers créés:**
+- `hegemonia-core/` - API commune (HegemoniaCore, DatabaseManager, RedisManager)
+- `hegemonia-nations/` - Plugin nations (complet)
+- `hegemonia-war/` - Structure de base
+- `hegemonia-economy/` - Structure de base
 
 **Durée estimée Phase 4:** 10-14 jours
 
@@ -620,9 +627,29 @@ LANCEMENT PRÉVU : Juillet 2026
 
 ## 🔄 HISTORIQUE DES CHANGEMENTS
 
-### 2026-01-07 (Session 2)
+### 2026-01-07 (Session 2) - Suite
 
-- ✅ Début Phase 1 : Infrastructure Serveur (60% complété)
+- ✅ **Phase 4 démarrée : Système de Nations (70%)**
+- ✅ Structure Gradle multi-projets créée
+- ✅ Plugin HegemoniaCore complet:
+  - HegemoniaCore.kt (plugin principal)
+  - DatabaseManager.kt (PostgreSQL + Exposed ORM)
+  - RedisManager.kt (cache + pub/sub)
+  - CoreConfig.kt (configuration)
+  - Extensions.kt (utilitaires Kotlin)
+- ✅ Plugin HegemoniaNations complet:
+  - 10 types de gouvernement (Démocratie, Monarchie, Dictature, etc.)
+  - 6 rôles avec permissions (Leader, Ministre, Général, etc.)
+  - NationService, PlayerService, TerritoryService
+  - NationTables (DAO Exposed complet)
+  - Commandes /nation (20+ sous-commandes)
+  - Commandes /nadmin (gestion admin)
+  - PlayerListener, ProtectionListener
+- ✅ Structures de base HegemoniaWar et HegemoniaEconomy
+
+### 2026-01-07 (Session 2) - Début
+
+- ✅ Phase 1 : Infrastructure Serveur (60% complété)
 - ✅ Mise à jour PROGRESS.md (reflet état réel)
 - ✅ Configuration Velocity complète (velocity.toml)
 - ✅ Configuration de tous les serveurs Paper:
