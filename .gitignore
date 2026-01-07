@@ -38,6 +38,19 @@ server/paper/*/cache/
 server/paper/*/plugins/bStats/
 server/paper/*/.console_history
 server/velocity/plugins/bStats/
+test-servers/*/cache/
+test-servers/*/plugins/bStats/
+test-servers/*/libraries/
+test-servers/*/versions/
+test-servers/*/config/
+test-servers/*/bukkit.yml
+test-servers/*/spigot.yml
+test-servers/*/commands.yml
+test-servers/*/help.yml
+test-servers/*/version_history.json
+test-servers/velocity/plugins/bStats/
+test-servers/velocity/lang/
+test-servers/velocity/forwarding.secret
 
 # Permissions et configs locaux
 permissions.yml

@@ -84,13 +84,13 @@ subprojects {
     tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
         archiveClassifier.set("")
 
-        // Désactiver minimize pour éviter les problèmes avec Java 21
+        // Désactiver minimize et relocate pour éviter les problèmes avec Java 21
         // minimize()
 
-        // Relocate dependencies to avoid conflicts
-        relocate("org.jetbrains.exposed", "com.hegemonia.libs.exposed")
-        relocate("com.zaxxer.hikari", "com.hegemonia.libs.hikari")
-        relocate("redis.clients", "com.hegemonia.libs.jedis")
+        // Note: Relocations désactivées temporairement à cause de Java 21
+        // relocate("org.jetbrains.exposed", "com.hegemonia.libs.exposed")
+        // relocate("com.zaxxer.hikari", "com.hegemonia.libs.hikari")
+        // relocate("redis.clients", "com.hegemonia.libs.jedis")
     }
 
     // Copy JAR to test server plugins folder

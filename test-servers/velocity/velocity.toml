@@ -1,24 +1,31 @@
 # Velocity Config - Hegemonia Test
 bind = "0.0.0.0:25577"
-motd = "&6Hegemonia &7- Serveur Géopolitique"
+# What should be the MOTD? This gets displayed when the player adds your server to
+# their server list. Only MiniMessage format is accepted.
+motd = "<gold>Hegemonia </gold><gray>- Serveur Géopolitique"
 show-max-players = 100
 online-mode = false
+#Should the proxy enforce the new public key security standard? By default, this is on.
 force-key-authentication = false
+forced-hosts = {}
+#If you are using modern or BungeeGuard IP forwarding, configure a file that contains a unique secret here.
+#The file is expected to be UTF-8 encoded and not empty.
+forwarding-secret-file = "forwarding.secret"
+config-version = "2.7"
 
 [servers]
-earth = "127.0.0.1:25566"
-try = ["earth"]
-
-[forced-hosts]
-
+	earth = "127.0.0.1:25566"
+	try = ["earth"]
 [advanced]
-compression-threshold = 256
-compression-level = -1
-login-ratelimit = 3000
-connection-timeout = 5000
-read-timeout = 30000
-haproxy-protocol = false
-
+	connection-timeout = 5000
+	read-timeout = 30000
+	#Allows players transferred from other hosts via the
+	#Transfer packet (Minecraft 1.20.5) to be received.
+	accepts-transfers = false
+	compression-level = -1
+	haproxy-protocol = false
+	compression-threshold = 256
+	login-ratelimit = 3000
 [query]
-enabled = false
-port = 25577
+	port = 25577
+	enabled = false

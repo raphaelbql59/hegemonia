@@ -23,7 +23,7 @@ class HegemoniaLauncher:
         self.window.resizable(False, False)
 
         # Configuration
-        self.server_ip = "VOTRE_IP_VPS"  # À remplacer
+        self.server_ip = "51.75.31.173"
         self.server_port = "25577"
         self.minecraft_version = "1.20.4"
 

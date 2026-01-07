@@ -20,10 +20,7 @@ python3 launcher.py
 
 ## Configuration
 
-Éditez `launcher.py` et modifiez la ligne :
-```python
-self.server_ip = "VOTRE_IP_VPS"  # Remplacez par l'IP du serveur
-```
+L'IP du serveur est déjà configurée (`51.75.31.173:25577`). Aucune modification nécessaire.
 
 ## Utilisation
 

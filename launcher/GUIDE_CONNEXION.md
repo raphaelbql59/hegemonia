@@ -14,8 +14,8 @@
    - macOS : Python est préinstallé
 
 3. **Configurer l'IP du serveur**
-   - Ouvrir `launcher/simple/launcher.py`
-   - Ligne 26 : Remplacer `"VOTRE_IP_VPS"` par l'IP réelle
+   - L'IP est déjà configurée : `51.75.31.173`
+   - Aucune modification nécessaire
 
 4. **Lancer**
    ```bash
@@ -47,7 +47,7 @@
 
 3. **Configurer**
    - Nom du serveur : `Hegemonia`
-   - Adresse : `VOTRE_IP:25577`
+   - Adresse : `51.75.31.173:25577`
    - Cliquer sur "Terminé"
 
 4. **Se connecter**
@@ -76,7 +76,7 @@
 
 ## 📝 Informations Serveur
 
-**Adresse :** VOTRE_IP:25577
+**Adresse :** 51.75.31.173:25577
 **Version :** Minecraft 1.20.4
 **Mode :** Survie, Géopolitique
 **Plugins :**
