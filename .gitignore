@@ -236,3 +236,4 @@ temp/
 
 # Gardons les dossiers vides avec .gitkeep
 !**/.gitkeep
+.claude/
