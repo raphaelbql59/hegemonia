@@ -19,8 +19,8 @@
 ## 📊 PROGRESSION GLOBALE
 
 ```
-Phase 0  : ████████████████████░ 95%  🟢 EN COURS
-Phase 1  : ░░░░░░░░░░░░░░░░░░░░  0%  ⚪ À FAIRE
+Phase 0  : ████████████████████ 100%  ✅ TERMINÉ
+Phase 1  : ████████████░░░░░░░░ 60%  🟢 EN COURS
 Phase 2  : ░░░░░░░░░░░░░░░░░░░░  0%  ⚪ À FAIRE
 Phase 3  : ░░░░░░░░░░░░░░░░░░░░  0%  ⚪ À FAIRE
 Phase 4  : ░░░░░░░░░░░░░░░░░░░░  0%  ⚪ À FAIRE
@@ -41,33 +41,37 @@ Phase 18 : ░░░░░░░░░░░░░░░░░░░░  0%  ⚪
 Phase 19 : ░░░░░░░░░░░░░░░░░░░░  0%  ⚪ À FAIRE
 Phase 20 : ░░░░░░░░░░░░░░░░░░░░  0%  ⚪ À FAIRE
 
-TOTAL    : █░░░░░░░░░░░░░░░░░░░  5%
+TOTAL    : ██░░░░░░░░░░░░░░░░░░  8%
 ```
 
 ---
 
 ## 📋 DÉTAIL PAR PHASE
 
-### ✅ PHASE 0 : ANALYSE ET PLANIFICATION (95%)
+### ✅ PHASE 0 : ANALYSE ET PLANIFICATION (100%)
 
 **Objectif:** Établir les fondations du projet, architecture et planification
 
 | Tâche | Statut | Date | Notes |
 |-------|--------|------|-------|
 | Création structure dossiers | ✅ | 2026-01-07 | Structure complète créée |
-| Document ARCHITECTURE.md | ✅ | 2026-01-07 | Architecture détaillée documentée |
-| Fichier PROGRESS.md | 🟢 | 2026-01-07 | En cours de création |
-| Plan de développement | ⚪ | - | À créer |
-| Analyse dépendances | ⚪ | - | À documenter |
-| Initialisation Git | ⚪ | - | À faire |
+| Document ARCHITECTURE.md | ✅ | 2026-01-07 | Architecture détaillée (760 lignes) |
+| Fichier PROGRESS.md | ✅ | 2026-01-07 | Suivi complet créé |
+| Plan de développement | ✅ | 2026-01-07 | DEVELOPMENT_PLAN.md (912 lignes) |
+| Guide d'installation | ✅ | 2026-01-07 | INSTALLATION.md (542 lignes) |
+| Docker Compose | ✅ | 2026-01-07 | 13 services configurés |
+| Schémas base de données | ✅ | 2026-01-07 | PostgreSQL + Web schemas |
+| Scripts infrastructure | ✅ | 2026-01-07 | secure-vps.sh, install, backup |
+| Initialisation Git | ✅ | 2026-01-07 | Repository initialisé |
 
-**Prochaine étape:** Finaliser plan de développement détaillé
+**Phase terminée le:** 2026-01-07
 
 ---
 
-### ⚪ PHASE 1 : INFRASTRUCTURE SERVEUR (0%)
+### 🟢 PHASE 1 : INFRASTRUCTURE SERVEUR (60%)
 
 **Objectif:** Configurer et sécuriser le VPS Debian 11
+**Début:** 2026-01-07
 
 #### 1.1 Sécurisation VPS
 
@@ -80,45 +84,65 @@ TOTAL    : █░░░░░░░░░░░░░░░░░░░  5%
 | Utilisateur minecraft | ⚪ | 🟠 HAUTE | Droits limités |
 | Optimisation swap | ⚪ | 🟡 MOYENNE | Pour 64GB RAM |
 | Sysctl optimisation | ⚪ | 🟡 MOYENNE | Kernel tuning |
-| Backups automatiques | ⚪ | 🟠 HAUTE | Restic + cron |
-| Monitoring Netdata | ⚪ | 🟡 MOYENNE | Monitoring temps réel |
+| Backups automatiques | ✅ | 🟠 HAUTE | Scripts créés (backup.sh) |
+| Monitoring Netdata | ✅ | 🟡 MOYENNE | Configuré dans docker-compose |
 | SSL Let's Encrypt | ⚪ | 🟠 HAUTE | Certbot |
 | Docker installation | ⚪ | 🔴 CRITIQUE | + Docker Compose |
+
+> **Note:** Scripts de sécurisation VPS déjà créés (secure-vps.sh) - À exécuter sur le VPS
 
 #### 1.2 Architecture Multi-Serveur
 
 | Tâche | Statut | Priorité | Notes |
 |-------|--------|----------|-------|
 | Installation Velocity | ⚪ | 🔴 CRITIQUE | Proxy principal |
-| Configuration Velocity | ⚪ | 🔴 CRITIQUE | velocity.toml |
-| Setup Paper (Lobby) | ⚪ | 🔴 CRITIQUE | Hub central |
-| Setup Purpur (Earth) | ⚪ | 🔴 CRITIQUE | Serveur principal |
-| Setup Paper (Wars) | ⚪ | 🟠 HAUTE | Instances guerre |
-| Setup Paper (Resources) | ⚪ | 🟡 MOYENNE | Farm/minage |
-| Setup Paper (Events) | ⚪ | 🟢 BASSE | Events spéciaux |
+| Configuration Velocity | ✅ | 🔴 CRITIQUE | velocity.toml configuré |
+| Setup Paper (Lobby) | ✅ | 🔴 CRITIQUE | server.properties + configs |
+| Setup Purpur (Earth) | ✅ | 🔴 CRITIQUE | server.properties + configs |
+| Setup Paper (Wars) | ✅ | 🟠 HAUTE | server.properties + configs |
+| Setup Paper (Resources) | ✅ | 🟡 MOYENNE | server.properties + configs |
+| Setup Paper (Events) | ✅ | 🟢 BASSE | server.properties + configs |
 | Tests connexion cross-server | ⚪ | 🟠 HAUTE | Transferts joueurs |
 
 #### 1.3 Base de Données
 
 | Tâche | Statut | Priorité | Notes |
 |-------|--------|----------|-------|
-| Installation PostgreSQL 15 | ⚪ | 🔴 CRITIQUE | Via Docker |
-| Configuration PostgreSQL | ⚪ | 🔴 CRITIQUE | Optimisations |
-| Création bases | ⚪ | 🔴 CRITIQUE | hegemonia_main, hegemonia_web |
-| Schéma initial | ⚪ | 🔴 CRITIQUE | Tables principales |
+| Installation PostgreSQL 15 | ✅ | 🔴 CRITIQUE | Configuré dans docker-compose |
+| Configuration PostgreSQL | ✅ | 🔴 CRITIQUE | Optimisations incluses |
+| Création bases | ✅ | 🔴 CRITIQUE | Scripts init créés |
+| Schéma initial | ✅ | 🔴 CRITIQUE | 01-schema.sql, 02-web-schema.sql |
 | Installation PgBouncer | ⚪ | 🟡 MOYENNE | Connection pooling |
 | Tests connexion | ⚪ | 🟠 HAUTE | Validation |
-| Setup backups DB | ⚪ | 🟠 HAUTE | Automatique quotidien |
+| Setup backups DB | ✅ | 🟠 HAUTE | Automatique dans docker-compose |
 
 #### 1.4 Cache Redis
 
 | Tâche | Statut | Priorité | Notes |
 |-------|--------|----------|-------|
-| Installation Redis 7 | ⚪ | 🔴 CRITIQUE | Via Docker |
-| Configuration Redis | ⚪ | 🟠 HAUTE | redis.conf |
+| Installation Redis 7 | ✅ | 🔴 CRITIQUE | Configuré dans docker-compose |
+| Configuration Redis | ✅ | 🟠 HAUTE | redis.conf créé |
 | Tests pub/sub | ⚪ | 🟡 MOYENNE | Cross-server |
 
+#### 1.5 Nginx & Web
+
+| Tâche | Statut | Priorité | Notes |
+|-------|--------|----------|-------|
+| Configuration Nginx | ✅ | 🟠 HAUTE | nginx.conf + conf.d/default.conf |
+| Reverse proxy | ✅ | 🟠 HAUTE | Configuré pour web + monitoring |
+| Rate limiting | ✅ | 🟡 MOYENNE | API et général |
+
+#### 1.6 Scripts & Automatisation
+
+| Tâche | Statut | Priorité | Notes |
+|-------|--------|----------|-------|
+| Script déploiement (deploy.sh) | ✅ | 🔴 CRITIQUE | Script principal |
+| Script secrets (generate-secrets.sh) | ✅ | 🔴 CRITIQUE | Génération automatique |
+| Script démarrage Velocity | ✅ | 🟠 HAUTE | start-velocity.sh |
+| Script démarrage Paper | ✅ | 🟠 HAUTE | start-paper.sh (flags Aikar) |
+
 **Durée estimée Phase 1:** 3-5 jours
+**Prochaines étapes:** Déploiement sur VPS et tests
 
 ---
 
@@ -596,12 +620,35 @@ LANCEMENT PRÉVU : Juillet 2026
 
 ## 🔄 HISTORIQUE DES CHANGEMENTS
 
-### 2026-01-07
+### 2026-01-07 (Session 2)
 
-- ✅ Création structure projet
-- ✅ Document ARCHITECTURE.md créé
-- 🟢 Document PROGRESS.md en cours
-- ⚪ Initialisation Git à venir
+- ✅ Début Phase 1 : Infrastructure Serveur (60% complété)
+- ✅ Mise à jour PROGRESS.md (reflet état réel)
+- ✅ Configuration Velocity complète (velocity.toml)
+- ✅ Configuration de tous les serveurs Paper:
+  - Lobby (server.properties + paper configs)
+  - Earth (server.properties + paper configs)
+  - Wars (server.properties + paper configs)
+  - Resources (server.properties + paper configs)
+  - Events (server.properties + paper configs)
+- ✅ Configuration Redis (redis.conf)
+- ✅ Configuration Nginx (nginx.conf + reverse proxy)
+- ✅ Scripts de déploiement créés:
+  - deploy.sh (script principal)
+  - generate-secrets.sh (génération automatique)
+  - start-velocity.sh (flags optimisés)
+  - start-paper.sh (flags Aikar JVM)
+
+### 2026-01-07 (Session 1)
+
+- ✅ Création structure projet complète
+- ✅ Document ARCHITECTURE.md créé (760 lignes)
+- ✅ Document DEVELOPMENT_PLAN.md créé (912 lignes)
+- ✅ Document INSTALLATION.md créé (542 lignes)
+- ✅ Docker Compose configuré (13 services)
+- ✅ Schémas PostgreSQL créés
+- ✅ Scripts infrastructure créés
+- ✅ Initialisation Git + premiers commits
 
 ---
 
@@ -616,4 +663,4 @@ LANCEMENT PRÉVU : Juillet 2026
 
 **Document mis à jour automatiquement - Consulter régulièrement**
 
-*Dernière mise à jour: 2026-01-07*
+*Dernière mise à jour: 2026-01-07 (Session 2)*

@@ -1,0 +1,194 @@
+# ===========================
+# HEGEMONIA - Paper Global Configuration
+# Template pour tous les serveurs Paper/Purpur
+# ===========================
+
+_version: 28
+
+# ===========================
+# ASYNC CHUNKS
+# ===========================
+async-chunks:
+  threads: -1  # Auto-detect CPU cores
+
+# ===========================
+# CHUNK LOADING
+# ===========================
+chunk-loading:
+  autoconfig-send-distance: true
+  enable-frustum-priority: false
+  global-max-chunk-load-rate: -1.0
+  global-max-chunk-send-rate: -1.0
+  global-max-concurrent-loads: 500.0
+  max-concurrent-sends: 2
+  min-load-radius: 2
+  player-max-concurrent-loads: 20.0
+  target-player-chunk-send-rate: 100.0
+
+chunk-loading-advanced:
+  auto-config-send-distance: true
+  player-max-chunk-load-rate: -1.0
+
+chunk-loading-basic:
+  player-max-chunk-load-rate: 100.0
+
+# ===========================
+# CHUNK SYSTEM
+# ===========================
+chunk-system:
+  gen-parallelism: default
+  io-threads: -1  # Auto-detect
+  worker-threads: -1  # Auto-detect
+
+# ===========================
+# COLLISIONS
+# ===========================
+collisions:
+  enable-player-collisions: true
+  send-full-pos-for-hard-colliding-entities: true
+
+# ===========================
+# COMMANDS
+# ===========================
+commands:
+  fix-target-selector-tag-completion: true
+  suggest-player-names-when-null-tab-completions: true
+  time-command-affects-all-worlds: false
+
+# ===========================
+# CONSOLE
+# ===========================
+console:
+  enable-brigadier-completions: true
+  enable-brigadier-highlighting: true
+  has-all-permissions: false
+
+# ===========================
+# ITEM VALIDATION
+# ===========================
+item-validation:
+  book:
+    author: 8192
+    page: 16384
+    title: 8192
+  book-size:
+    page-max: 2560
+    total-multiplier: 0.98
+  display-name: 8192
+  lore-line: 8192
+  resolve-selectors-in-books: false
+
+# ===========================
+# LOGGING
+# ===========================
+logging:
+  deobfuscate-stacktraces: true
+  log-player-ip-addresses: true
+  use-rgb-for-named-text-colors: true
+
+# ===========================
+# MESSAGES
+# ===========================
+messages:
+  kick:
+    authentication-servers-down: "<red>Les serveurs d'authentification sont actuellement hors ligne. Réessayez plus tard.</red>"
+    connection-throttle: "<red>Connexion throttled ! Réessayez dans quelques secondes.</red>"
+    flying-player: "<red>Flying is not enabled on this server</red>"
+    flying-vehicle: "<red>Flying is not enabled on this server</red>"
+  no-permission: "<red>Je suis désolé, mais vous n'avez pas la permission d'effectuer cette commande. Veuillez contacter les administrateurs du serveur si vous pensez que c'est une erreur.</red>"
+  use-display-name-in-quit-message: false
+
+# ===========================
+# MISC
+# ===========================
+misc:
+  chat-threads:
+    chat-executor-core-size: -1
+    chat-executor-max-size: -1
+  compression-level: 6
+  fix-entity-position-desync: true
+  lag-compensate-block-breaking: true
+  load-permissions-yml-before-plugins: true
+  max-joins-per-tick: 5
+  region-file-cache-size: 256
+  strict-advancement-dimension-check: false
+  use-alternative-luck-formula: false
+  use-dimension-type-for-custom-spawners: false
+
+# ===========================
+# PACKET LIMITER
+# ===========================
+packet-limiter:
+  all-packets:
+    action: KICK
+    interval: 7.0
+    max-packet-rate: 500.0
+  kick-message: "<red>Envoi de paquets trop rapide !</red>"
+  overrides:
+    ServerboundPlaceRecipePacket:
+      action: DROP
+      interval: 4.0
+      max-packet-rate: 5.0
+
+# ===========================
+# PLAYER AUTO SAVE
+# ===========================
+player-auto-save:
+  max-per-tick: -1
+  rate: -1
+
+# ===========================
+# PROXIES (VELOCITY)
+# ===========================
+proxies:
+  bungee-cord:
+    online-mode: false
+  proxy-protocol: false
+  velocity:
+    enabled: true
+    online-mode: true
+    # IMPORTANT: Même secret que dans velocity.toml
+    secret: "CHANGEME_SAME_AS_VELOCITY_SECRET"
+
+# ===========================
+# SCOREBOARDS
+# ===========================
+scoreboards:
+  save-empty-scoreboard-teams: false
+  track-plugin-scoreboards: false
+
+# ===========================
+# SPAM LIMITER
+# ===========================
+spam-limiter:
+  incoming-packet-threshold: 300
+  recipe-spam-increment: 1
+  recipe-spam-limit: 20
+  tab-spam-increment: 1
+  tab-spam-limit: 500
+
+# ===========================
+# TIMINGS
+# ===========================
+timings:
+  enabled: true
+  hidden-config-entries:
+  - database
+  - proxies.velocity.secret
+  history-interval: 300
+  history-length: 3600
+  server-name: Hegemonia
+  server-name-privacy: false
+  url: https://timings.aikar.co
+  verbose: true
+
+# ===========================
+# UNSUPPORTED SETTINGS
+# ===========================
+unsupported-settings:
+  allow-grindstone-overstacking: false
+  allow-headless-pistons: false
+  allow-permanent-block-break-exploits: false
+  allow-piston-duplication: false
+  compression-format: ZLIB
+  perform-username-validation: true
