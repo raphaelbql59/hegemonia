@@ -1,0 +1,238 @@
+# ===========================
+# HEGEMONIA - .gitignore
+# ===========================
+
+# ===========================
+# MINECRAFT SERVER
+# ===========================
+
+# Logs
+*.log
+logs/
+crash-reports/
+
+# Worlds
+*/world/
+*/world_nether/
+*/world_the_end/
+world/
+world_nether/
+world_the_end/
+
+# Mais garder les backups essentiels
+!backups/.gitkeep
+
+# Server jars
+server.jar
+paper-*.jar
+purpur-*.jar
+velocity-*.jar
+*.jar.old
+
+# Plugins téléchargés (garder seulement nos customs)
+server/paper/*/plugins/*.jar
+!server/paper/*/plugins/Hegemonia*.jar
+
+# Caches et temporaires
+server/paper/*/cache/
+server/paper/*/plugins/bStats/
+server/paper/*/.console_history
+server/velocity/plugins/bStats/
+
+# Permissions et configs locaux
+permissions.yml
+ops.json
+whitelist.json
+banned-*.json
+usercache.json
+
+# ===========================
+# BUILD OUTPUTS
+# ===========================
+
+# Gradle
+.gradle/
+build/
+*/build/
+out/
+*/out/
+bin/
+*/bin/
+
+# Maven
+target/
+*/target/
+
+# Compiled class files
+*.class
+
+# ===========================
+# IDEs
+# ===========================
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Eclipse
+.classpath
+.project
+.settings/
+*.launch
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# ===========================
+# WEB/NODE.JS
+# ===========================
+
+# Dependencies
+node_modules/
+*/node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+.nyc_output
+
+# Production builds
+.next/
+out/
+dist/
+build/
+
+# Misc
+.DS_Store
+*.pem
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Local env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Vercel
+.vercel
+
+# ===========================
+# LAUNCHER (TAURI)
+# ===========================
+
+# Tauri
+launcher/src-tauri/target/
+launcher/src-tauri/Cargo.lock
+
+# ===========================
+# DATABASE
+# ===========================
+
+# PostgreSQL
+*.sql.gz
+database/postgresql/data/
+pgdata/
+
+# Redis
+database/redis/data/
+*.rdb
+*.aof
+
+# Backups (sauf structure)
+backups/*.sql
+backups/*.tar.gz
+backups/*.zip
+
+# ===========================
+# DOCKER
+# ===========================
+
+# Docker volumes
+volumes/
+
+# ===========================
+# OS
+# ===========================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ===========================
+# SECRETS & CONFIGS
+# ===========================
+
+# Secrets
+secrets/
+*.key
+*.pem
+*.p12
+*.jks
+
+# Local configs
+config.local.yml
+database.local.yml
+
+# Auth tokens
+.auth/
+tokens/
+
+# ===========================
+# TEMP & MISC
+# ===========================
+
+# Temp files
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
+
+# Archives
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# Sauf les releases
+!releases/*.jar
+!releases/*.zip
+
+# ===========================
+# KEEP DIRS
+# ===========================
+
+# Gardons les dossiers vides avec .gitkeep
+!**/.gitkeep
