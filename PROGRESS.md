@@ -651,6 +651,35 @@ LANCEMENT PRÉVU : Juillet 2026
 
 ## 🔄 HISTORIQUE DES CHANGEMENTS
 
+### 2026-01-07 (Session 6) - Serveurs opérationnels + Launcher configuré
+
+- ✅ **Launcher configuré avec IP réelle (51.75.31.173)**
+- ✅ Launcher prêt à l'emploi, aucune configuration nécessaire
+- ✅ Documentation mise à jour avec IP réelle
+- ✅ **Serveurs Minecraft lancés et fonctionnels:**
+  - Velocity proxy: port 25577 ✅ EN LIGNE
+  - Paper Earth: port 25566 ✅ EN LIGNE
+- ✅ **Plugins rebuilds avec Shadow JAR corrigé:**
+  - Désactivation relocations (incompatible Java 21)
+  - HegemoniaCore: 12 MB (inclut Kotlin runtime + toutes dépendances)
+  - HegemoniaNations: 13 MB (inclut Kotlin runtime + toutes dépendances)
+  - Plus d'erreur `NoClassDefFoundError: kotlin/jvm/internal/Intrinsics`
+- ✅ Plugins déployés sur test-servers/earth/plugins/
+- ⚠️ **Plugins ne chargent pas complètement:**
+  - Nécessitent PostgreSQL (port 5432)
+  - Nécessitent Redis (port 6379)
+  - Les serveurs Minecraft fonctionnent mais sans les plugins actifs
+- 📋 **Prochaines étapes:**
+  - Installer Docker: `sudo bash scripts/install-tools.sh`
+  - Démarrer bases de données: `docker compose up -d postgres redis`
+  - Redémarrer Paper pour charger les plugins complets
+- 🎮 **État actuel:**
+  - Utilisateur PEUT se connecter au serveur (51.75.31.173:25577)
+  - Serveur fonctionne en mode vanilla (sans plugins actifs)
+  - Bases de données requises pour features nations/war
+
+**Les serveurs sont LIVE et accessibles !**
+
 ### 2026-01-07 (Session 5) - Launcher Simple
 
 - ✅ **Launcher Python créé (URGENT)**
