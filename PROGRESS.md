@@ -651,6 +651,35 @@ LANCEMENT PRÉVU : Juillet 2026
 
 ## 🔄 HISTORIQUE DES CHANGEMENTS
 
+### 2026-01-07 (Session 4) - Serveur de test opérationnel
+
+- ✅ **Serveur de test configuré et prêt**
+- ✅ Gradle Wrapper 8.5 installé
+- ✅ Build réussi de HegemoniaCore (32 KB)
+- ✅ Build réussi de HegemoniaNations (225 KB)
+- ✅ Serveurs téléchargés:
+  - Velocity 3.3.0-SNAPSHOT-408 (16 MB)
+  - Paper 1.20.4 build 497 (41 MB)
+- ✅ Structure test-servers créée:
+  - `/test-servers/velocity/` - Proxy Velocity
+  - `/test-servers/earth/` - Serveur Paper Earth
+  - Plugins copiés dans earth/plugins/
+- ✅ Configurations créées:
+  - `eula.txt` (accepté)
+  - `server.properties` (port 25566, online-mode=false)
+  - `velocity.toml` (port 25577, route vers earth)
+  - `HegemoniaCore/config.yml` (PostgreSQL + Redis)
+- ✅ Scripts de démarrage:
+  - `start-test-server.sh` - Guide de démarrage
+- 🟢 **HegemoniaWar** - Problèmes de compilation (imports à corriger)
+- 📝 **Prochaines étapes**:
+  - Installer Docker pour PostgreSQL/Redis
+  - Démarrer les serveurs et tester
+  - Corriger les erreurs War et compiler
+
+**Serveur prêt à être lancé !**
+Commandes : Voir `./start-test-server.sh`
+
 ### 2026-01-07 (Session 3) - HegemoniWar Plugin
 
 - ✅ **Phase 5 démarrée : Système de Guerre (80%)**

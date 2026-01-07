@@ -40,9 +40,9 @@ class HegemoniaWar : JavaPlugin() {
         initializeTables(core)
 
         // Initialiser les services
-        warService = WarService(core.databaseManager)
-        battleService = BattleService(core.databaseManager, warService)
-        siegeService = SiegeService(core.databaseManager, battleService)
+        warService = WarService(core.database)
+        battleService = BattleService(core.database, warService)
+        siegeService = SiegeService(core.database, battleService)
 
         // Enregistrer les commandes
         registerCommands()
@@ -63,7 +63,7 @@ class HegemoniaWar : JavaPlugin() {
     }
 
     private fun initializeTables(core: HegemoniaCore) {
-        core.databaseManager.transaction {
+        core.database.transaction {
             SchemaUtils.createMissingTablesAndColumns(
                 WarTables.Wars,
                 WarTables.WarParticipants,

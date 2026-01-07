@@ -11,7 +11,7 @@ plugins {
 dependencies {
     // Dépendances sur les autres modules
     implementation(project(":hegemonia-core"))
-    implementation(project(":hegemonia-nations"))
+    compileOnly(project(":hegemonia-nations"))
 }
 
 tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {

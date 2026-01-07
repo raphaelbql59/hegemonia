@@ -1,0 +1,31 @@
+# HegemoniaCore Configuration
+
+database:
+  host: localhost
+  port: 5432
+  database: hegemonia
+  username: hegemonia
+  password: hegemonia_password
+
+  # Pool de connexions
+  pool:
+    minimum-idle: 5
+    maximum-pool-size: 20
+    connection-timeout: 30000
+
+redis:
+  host: localhost
+  port: 6379
+  password: ""
+  database: 0
+
+  # Pool de connexions
+  pool:
+    max-total: 20
+    max-idle: 10
+    min-idle: 2
+
+# Paramètres généraux
+general:
+  server-name: "Earth"
+  debug-mode: true

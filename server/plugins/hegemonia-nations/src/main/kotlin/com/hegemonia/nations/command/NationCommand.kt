@@ -119,9 +119,9 @@ class NationCommand(private val plugin: HegemoniaNations) : CommandExecutor, Tab
             player.sendMini("<gray>Vous êtes maintenant ${govType.leaderTitle}!")
 
             // Annonce globale
-            Bukkit.broadcast(plugin.parse(
+            Bukkit.broadcast(com.hegemonia.core.HegemoniaCore.get().parse(
                 "<gold><bold>NOUVELLE NATION!</bold></gold> <yellow>${player.name}</yellow> a fondé <gold>${nation.name}</gold>!"
-            ))
+            ) as net.kyori.adventure.text.Component)
         }.onFailure { error ->
             player.sendError(error.message ?: "Erreur lors de la création")
         }

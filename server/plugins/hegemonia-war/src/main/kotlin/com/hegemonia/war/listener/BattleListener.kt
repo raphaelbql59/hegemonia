@@ -1,8 +1,6 @@
 package com.hegemonia.war.listener
 
-import com.hegemonia.core.extensions.error
-import com.hegemonia.core.extensions.info
-import com.hegemonia.core.extensions.warning
+import com.hegemonia.core.utils.*
 import com.hegemonia.war.HegemoniaWar
 import com.hegemonia.war.model.BattleStatus
 import com.hegemonia.war.model.WarSide

@@ -23,6 +23,7 @@ allprojects {
 }
 
 subprojects {
+    apply(plugin = "java")
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "org.jetbrains.kotlin.plugin.serialization")
     apply(plugin = "com.github.johnrengelman.shadow")
@@ -72,6 +73,10 @@ subprojects {
         }
     }
 
+    tasks.withType<JavaCompile> {
+        options.release.set(21)
+    }
+
     tasks.withType<Test> {
         useJUnitPlatform()
     }
@@ -79,15 +84,13 @@ subprojects {
     tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
         archiveClassifier.set("")
 
+        // Désactiver minimize pour éviter les problèmes avec Java 21
+        // minimize()
+
         // Relocate dependencies to avoid conflicts
         relocate("org.jetbrains.exposed", "com.hegemonia.libs.exposed")
         relocate("com.zaxxer.hikari", "com.hegemonia.libs.hikari")
         relocate("redis.clients", "com.hegemonia.libs.jedis")
-
-        minimize {
-            exclude(dependency("org.jetbrains.kotlin:.*"))
-            exclude(dependency("org.jetbrains.exposed:.*"))
-        }
     }
 
     // Copy JAR to test server plugins folder

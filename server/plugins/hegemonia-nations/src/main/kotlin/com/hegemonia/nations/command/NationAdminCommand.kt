@@ -130,9 +130,9 @@ class NationAdminCommand(private val plugin: HegemoniaNations) : CommandExecutor
 
         if (plugin.nationService.deleteNation(nation.id)) {
             sender.sendSuccess("Nation <gold>${nation.name}</gold> supprimée.")
-            Bukkit.broadcast(plugin.parse(
+            Bukkit.broadcast(com.hegemonia.core.HegemoniaCore.get().parse(
                 "<red>La nation <gold>${nation.name}</gold> a été dissoute par un administrateur.</red>"
-            ))
+            ) as net.kyori.adventure.text.Component)
         } else {
             sender.sendError("Erreur lors de la suppression.")
         }
@@ -394,8 +394,6 @@ class NationAdminCommand(private val plugin: HegemoniaNations) : CommandExecutor
         }
     }
 
-    private fun CommandSender.parse(message: String) = plugin.parse(message)
-
-    private fun plugin.parse(message: String) =
+    private fun CommandSender.parse(message: String) =
         com.hegemonia.core.HegemoniaCore.get().parse(message)
 }

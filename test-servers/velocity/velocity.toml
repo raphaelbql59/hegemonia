@@ -1,0 +1,24 @@
+# Velocity Config - Hegemonia Test
+bind = "0.0.0.0:25577"
+motd = "&6Hegemonia &7- Serveur Géopolitique"
+show-max-players = 100
+online-mode = false
+force-key-authentication = false
+
+[servers]
+earth = "127.0.0.1:25566"
+try = ["earth"]
+
+[forced-hosts]
+
+[advanced]
+compression-threshold = 256
+compression-level = -1
+login-ratelimit = 3000
+connection-timeout = 5000
+read-timeout = 30000
+haproxy-protocol = false
+
+[query]
+enabled = false
+port = 25577
