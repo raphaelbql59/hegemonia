@@ -1,0 +1,158 @@
+# ===========================
+# HEGEMONIA - Velocity Configuration
+# Proxy central pour tous les serveurs
+# ===========================
+
+# Configuration version (ne pas modifier)
+config-version = "2.7"
+
+# ===========================
+# RÉSEAU
+# ===========================
+
+# IP et port d'écoute du proxy
+bind = "0.0.0.0:25565"
+
+# MOTD (Message of the Day)
+motd = "<gradient:#FF6B6B:#4ECDC4><bold>HEGEMONIA</bold></gradient>\n<gray>Serveur Géopolitique Révolutionnaire</gray>"
+
+# Nombre maximum de joueurs
+show-max-players = 100
+
+# Mode en ligne (authentification Mojang/Microsoft)
+online-mode = true
+
+# Activer le mode moderne de forwarding pour Paper
+force-key-authentication = true
+
+# ===========================
+# SERVEURS
+# ===========================
+
+[servers]
+  # Serveur par défaut (lobby)
+  lobby = "lobby:25565"
+
+  # Serveur principal (Earth)
+  earth = "earth:25565"
+
+  # Serveurs secondaires
+  wars = "wars:25565"
+  resources = "resources:25565"
+  events = "events:25565"
+
+# Ordre des serveurs pour fallback
+try = [
+  "lobby",
+  "earth"
+]
+
+# ===========================
+# FORWARDING MODERNE
+# ===========================
+
+[forced-hosts]
+  # Redirections par domaine (optionnel)
+  # "lobby.hegemonia.com" = [ "lobby" ]
+  # "earth.hegemonia.com" = [ "earth" ]
+
+[player-info-forwarding]
+  # Mode de forwarding (MODERN pour Paper 1.19.3+)
+  mode = "modern"
+
+  # Secret partagé avec les serveurs backend
+  # IMPORTANT: Générer avec: openssl rand -base64 32
+  # Et configurer le même dans config/paper-global.yml de chaque serveur
+  secret = "CHANGEME_GENERATE_WITH_OPENSSL_RAND_BASE64_32"
+
+# ===========================
+# OPTIMISATIONS
+# ===========================
+
+[advanced]
+  # Compression (niveau 6 = bon compromis)
+  compression-threshold = 256
+  compression-level = 6
+
+  # Timeouts
+  login-ratelimit = 3000  # ms entre tentatives de connexion
+  connection-timeout = 5000  # ms timeout connexion
+  read-timeout = 30000  # ms timeout lecture
+
+  # Haproxy protocol
+  haproxy-protocol = false
+
+  # TCP Fast Open
+  tcp-fast-open = false
+
+  # BungeeCord plugin messaging
+  bungee-plugin-message-channel = true
+
+  # Accepter les transferts de serveur
+  accepts-transfers = true
+
+[query]
+  # Activer le query protocol (pour monitoring)
+  enabled = true
+  port = 25565
+  map = "Hegemonia"
+  show-plugins = false
+
+# ===========================
+# SÉCURITÉ
+# ===========================
+
+# Prévenir les attaques par IP forwarding
+[advanced]
+  # IP forwarding mode (doit être "modern" pour Paper)
+  proxy-protocol = false
+
+# ===========================
+# MESSAGES
+# ===========================
+
+[messages]
+  # Message quand le serveur est complet
+  server-full = "<red>Le serveur est complet ! ({current}/{max})</red>"
+
+  # Message quand un serveur n'est pas disponible
+  server-unavailable = "<red>Le serveur {server} n'est pas disponible actuellement.</red>"
+
+  # Message de kick générique
+  kick = "<red>Vous avez été déconnecté du serveur.</red>"
+
+  # Message si pas en whitelist
+  whitelist = "<red>Vous n'êtes pas sur la whitelist du serveur.</red>"
+
+  # Message si déjà connecté
+  already-connected = "<red>Vous êtes déjà connecté au serveur !</red>"
+
+  # Message de redirection
+  moved-to-server = "<green>Vous avez été transféré vers {server}.</green>"
+
+# ===========================
+# PERMISSIONS
+# ===========================
+
+# Les permissions sont gérées par les plugins
+# Utiliser LuckPerms sur Velocity + Paper pour synchronisation
+
+# ===========================
+# NOTES IMPORTANTES
+# ===========================
+
+# 1. Générer le secret avec: openssl rand -base64 32
+# 2. Copier le même secret dans config/paper-global.yml de chaque serveur Paper:
+#    proxies:
+#      velocity:
+#        enabled: true
+#        online-mode: true
+#        secret: "VOTRE_SECRET_ICI"
+#
+# 3. Sur chaque serveur Paper, définir online-mode=false dans server.properties
+#    car Velocity gère l'authentification
+#
+# 4. Activer "velocity-support" dans paper-global.yml:
+#    proxies:
+#      velocity:
+#        enabled: true

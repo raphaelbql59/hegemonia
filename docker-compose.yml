@@ -1,0 +1,378 @@
+version: '3.8'
+
+# ===========================
+# HEGEMONIA - Docker Compose
+# Architecture complète multi-serveur
+# ===========================
+
+services:
+  # ===========================
+  # BASE DE DONNÉES
+  # ===========================
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: hegemonia-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-hegemonia}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-hegemonia_main}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/postgresql/init:/docker-entrypoint-initdb.d:ro
+      - ./database/postgresql/backups:/backups
+    ports:
+      - "127.0.0.1:5432:5432"
+    networks:
+      - hegemonia-backend
+    command: >
+      postgres
+      -c shared_buffers=1GB
+      -c effective_cache_size=3GB
+      -c maintenance_work_mem=256MB
+      -c work_mem=16MB
+      -c max_connections=100
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-hegemonia}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: hegemonia-redis
+    restart: unless-stopped
+    command: >
+      redis-server
+      --maxmemory 2gb
+      --maxmemory-policy allkeys-lru
+      --appendonly no
+      --save ""
+    volumes:
+      - redis_data:/data
+    ports:
+      - "127.0.0.1:6379:6379"
+    networks:
+      - hegemonia-backend
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # ===========================
+  # SERVEURS MINECRAFT
+  # ===========================
+
+  velocity:
+    image: itzg/minecraft-server:java21
+    container_name: hegemonia-velocity
+    restart: unless-stopped
+    environment:
+      EULA: "TRUE"
+      TYPE: VELOCITY
+      VERSION: "LATEST"
+      MEMORY: "2G"
+      USE_AIKAR_FLAGS: "true"
+      ENABLE_ROLLING_LOGS: "true"
+    volumes:
+      - ./server/velocity:/data
+      - velocity_plugins:/data/plugins
+    ports:
+      - "25565:25565"  # Port public Minecraft
+    networks:
+      - hegemonia-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "mc-monitor status --host localhost --port 25565"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  lobby:
+    image: itzg/minecraft-server:java21
+    container_name: hegemonia-lobby
+    restart: unless-stopped
+    environment:
+      EULA: "TRUE"
+      TYPE: PAPER
+      VERSION: "1.20.4"
+      MEMORY: "4G"
+      USE_AIKAR_FLAGS: "true"
+      SERVER_NAME: "Hegemonia-Lobby"
+      ONLINE_MODE: "FALSE"  # Velocity gère l'auth
+      ENABLE_ROLLING_LOGS: "true"
+      VIEW_DISTANCE: 8
+      SIMULATION_DISTANCE: 6
+    volumes:
+      - ./server/paper/lobby:/data
+      - lobby_plugins:/data/plugins
+    ports:
+      - "127.0.0.1:25566:25565"
+    networks:
+      - hegemonia-backend
+    depends_on:
+      velocity:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "mc-monitor status --host localhost --port 25565"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+
+  earth:
+    image: itzg/minecraft-server:java21
+    container_name: hegemonia-earth
+    restart: unless-stopped
+    environment:
+      EULA: "TRUE"
+      TYPE: PURPUR
+      VERSION: "1.20.4"
+      MEMORY: "24G"
+      USE_AIKAR_FLAGS: "true"
+      SERVER_NAME: "Hegemonia-Earth"
+      ONLINE_MODE: "FALSE"
+      ENABLE_ROLLING_LOGS: "true"
+      VIEW_DISTANCE: 10
+      SIMULATION_DISTANCE: 8
+      MAX_TICK_TIME: "-1"  # Désactiver watchdog
+    volumes:
+      - ./server/paper/earth:/data
+      - earth_plugins:/data/plugins
+      - earth_world:/data/world
+    ports:
+      - "127.0.0.1:25567:25565"
+    networks:
+      - hegemonia-backend
+    depends_on:
+      velocity:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "mc-monitor status --host localhost --port 25565"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 180s
+
+  wars:
+    image: itzg/minecraft-server:java21
+    container_name: hegemonia-wars
+    restart: unless-stopped
+    environment:
+      EULA: "TRUE"
+      TYPE: PAPER
+      VERSION: "1.20.4"
+      MEMORY: "8G"
+      USE_AIKAR_FLAGS: "true"
+      SERVER_NAME: "Hegemonia-Wars"
+      ONLINE_MODE: "FALSE"
+      ENABLE_ROLLING_LOGS: "true"
+      VIEW_DISTANCE: 8
+      SIMULATION_DISTANCE: 6
+    volumes:
+      - ./server/paper/wars:/data
+      - wars_plugins:/data/plugins
+    ports:
+      - "127.0.0.1:25568:25565"
+    networks:
+      - hegemonia-backend
+    depends_on:
+      velocity:
+        condition: service_healthy
+
+  resources:
+    image: itzg/minecraft-server:java21
+    container_name: hegemonia-resources
+    restart: unless-stopped
+    environment:
+      EULA: "TRUE"
+      TYPE: PAPER
+      VERSION: "1.20.4"
+      MEMORY: "8G"
+      USE_AIKAR_FLAGS: "true"
+      SERVER_NAME: "Hegemonia-Resources"
+      ONLINE_MODE: "FALSE"
+      ENABLE_ROLLING_LOGS: "true"
+      VIEW_DISTANCE: 8
+      SIMULATION_DISTANCE: 6
+    volumes:
+      - ./server/paper/resources:/data
+      - resources_plugins:/data/plugins
+    ports:
+      - "127.0.0.1:25569:25565"
+    networks:
+      - hegemonia-backend
+    depends_on:
+      velocity:
+        condition: service_healthy
+
+  events:
+    image: itzg/minecraft-server:java21
+    container_name: hegemonia-events
+    restart: unless-stopped
+    environment:
+      EULA: "TRUE"
+      TYPE: PAPER
+      VERSION: "1.20.4"
+      MEMORY: "4G"
+      USE_AIKAR_FLAGS: "true"
+      SERVER_NAME: "Hegemonia-Events"
+      ONLINE_MODE: "FALSE"
+      ENABLE_ROLLING_LOGS: "true"
+      VIEW_DISTANCE: 8
+      SIMULATION_DISTANCE: 6
+    volumes:
+      - ./server/paper/events:/data
+      - events_plugins:/data/plugins
+    ports:
+      - "127.0.0.1:25570:25565"
+    networks:
+      - hegemonia-backend
+    depends_on:
+      velocity:
+        condition: service_healthy
+
+  # ===========================
+  # WEB & API
+  # ===========================
+
+  nginx:
+    image: nginx:alpine
+    container_name: hegemonia-nginx
+    restart: unless-stopped
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./web/frontend/.next:/var/www/frontend:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - hegemonia-backend
+    depends_on:
+      - web
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  web:
+    build:
+      context: ./web/frontend
+      dockerfile: Dockerfile
+    container_name: hegemonia-web
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-hegemonia}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-hegemonia_main}
+      REDIS_URL: redis://redis:6379
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-https://hegemonia.com}
+    volumes:
+      - ./web/frontend/.next:/app/.next
+    ports:
+      - "127.0.0.1:3000:3000"
+    networks:
+      - hegemonia-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ===========================
+  # MONITORING
+  # ===========================
+
+  netdata:
+    image: netdata/netdata:latest
+    container_name: hegemonia-netdata
+    restart: unless-stopped
+    hostname: hegemonia-vps
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - apparmor:unconfined
+    volumes:
+      - /etc/passwd:/host/etc/passwd:ro
+      - /etc/group:/host/etc/group:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "127.0.0.1:19999:19999"
+    networks:
+      - hegemonia-backend
+    environment:
+      - DOCKER_HOST=/var/run/docker.sock
+
+  # ===========================
+  # BACKUPS
+  # ===========================
+
+  backup:
+    image: offen/docker-volume-backup:latest
+    container_name: hegemonia-backup
+    restart: unless-stopped
+    environment:
+      BACKUP_CRON_EXPRESSION: "0 3 * * *"  # 3h du matin chaque jour
+      BACKUP_FILENAME: "hegemonia-backup-%Y-%m-%d.tar.gz"
+      BACKUP_RETENTION_DAYS: "7"
+      BACKUP_PRUNING_LEEWAY: "1h"
+      EXEC_LABEL: "hegemonia.backup"
+    volumes:
+      - postgres_data:/backup/postgres_data:ro
+      - redis_data:/backup/redis_data:ro
+      - earth_world:/backup/earth_world:ro
+      - ./backups:/archive
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - hegemonia-backend
+
+# ===========================
+# VOLUMES
+# ===========================
+
+volumes:
+  postgres_data:
+    name: hegemonia-postgres-data
+  redis_data:
+    name: hegemonia-redis-data
+  velocity_plugins:
+    name: hegemonia-velocity-plugins
+  lobby_plugins:
+    name: hegemonia-lobby-plugins
+  earth_plugins:
+    name: hegemonia-earth-plugins
+  earth_world:
+    name: hegemonia-earth-world
+  wars_plugins:
+    name: hegemonia-wars-plugins
+  resources_plugins:
+    name: hegemonia-resources-plugins
+  events_plugins:
+    name: hegemonia-events-plugins
+
+# ===========================
+# NETWORKS
+# ===========================
+
+networks:
+  hegemonia-backend:
+    name: hegemonia-network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
