@@ -651,6 +651,31 @@ LANCEMENT PRÉVU : Juillet 2026
 
 ## 🔄 HISTORIQUE DES CHANGEMENTS
 
+### 2026-01-07 (Session 5) - Launcher Simple
+
+- ✅ **Launcher Python créé (URGENT)**
+- ✅ Interface graphique avec Tkinter
+- ✅ Fichiers créés:
+  - `launcher/simple/launcher.py` (250 lignes)
+  - Interface moderne avec thème Discord-like
+  - Détection automatique de Minecraft
+  - Lancement automatique vers le serveur
+  - Support Windows, Linux, macOS
+- ✅ Documentation complète:
+  - `launcher/simple/README.md`
+  - `launcher/GUIDE_CONNEXION.md` - Guide utilisateur
+  - Instructions connexion manuelle
+- ✅ Scripts de build:
+  - `build-exe.sh` - Créer .exe Windows avec PyInstaller
+  - `requirements.txt` - Dépendances Python
+- 📝 **Utilisation**:
+  - Modifier l'IP dans launcher.py ligne 26
+  - `python3 launcher/simple/launcher.py`
+  - Entrer pseudo et cliquer "JOUER"
+- 🔮 **Futur**: Launcher Tauri complet avec auth Microsoft, mods, etc.
+
+**Le joueur peut maintenant se connecter facilement !**
+
 ### 2026-01-07 (Session 4) - Serveur de test opérationnel
 
 - ✅ **Serveur de test configuré et prêt**

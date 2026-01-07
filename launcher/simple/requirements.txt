@@ -1,0 +1,5 @@
+# Hegemonia Launcher - Dépendances Python
+# Tkinter est inclus avec Python par défaut
+
+# Pour créer un .exe Windows (optionnel)
+pyinstaller>=5.0
