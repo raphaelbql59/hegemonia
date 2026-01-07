@@ -24,7 +24,7 @@ Phase 1  : ████████████░░░░░░░░ 60%  �
 Phase 2  : ░░░░░░░░░░░░░░░░░░░░  0%  ⚪ À FAIRE
 Phase 3  : ░░░░░░░░░░░░░░░░░░░░  0%  ⚪ À FAIRE
 Phase 4  : ██████████████░░░░░░ 70%  🟢 EN COURS
-Phase 5  : ░░░░░░░░░░░░░░░░░░░░  0%  ⚪ À FAIRE
+Phase 5  : ████████████████░░░░ 80%  🟢 EN COURS
 Phase 6  : ░░░░░░░░░░░░░░░░░░░░  0%  ⚪ À FAIRE
 Phase 7  : ░░░░░░░░░░░░░░░░░░░░  0%  ⚪ À FAIRE
 Phase 8  : ░░░░░░░░░░░░░░░░░░░░  0%  ⚪ À FAIRE
@@ -41,7 +41,7 @@ Phase 18 : ░░░░░░░░░░░░░░░░░░░░  0%  ⚪
 Phase 19 : ░░░░░░░░░░░░░░░░░░░░  0%  ⚪ À FAIRE
 Phase 20 : ░░░░░░░░░░░░░░░░░░░░  0%  ⚪ À FAIRE
 
-TOTAL    : ███░░░░░░░░░░░░░░░░░ 12%
+TOTAL    : ████░░░░░░░░░░░░░░░░ 16%
 ```
 
 ---
@@ -222,27 +222,51 @@ TOTAL    : ███░░░░░░░░░░░░░░░░░ 12%
 
 ---
 
-### ⚪ PHASE 5 : SYSTÈME DE GUERRE (0%)
+### 🟢 PHASE 5 : SYSTÈME DE GUERRE (80%)
 
 **Objectif:** Plugin HegemoniaWar - Combat et conquête
+**Début:** 2026-01-07
 
 | Tâche | Statut | Priorité | Notes |
 |-------|--------|----------|-------|
-| Setup projet plugin | ⚪ | 🔴 CRITIQUE | Dépend HegemoniaNations |
-| Structure War/Battle | ⚪ | 🔴 CRITIQUE | Data models |
-| Déclaration guerre | ⚪ | 🔴 CRITIQUE | Conditions + validation |
-| War Goals | ⚪ | 🔴 CRITIQUE | Objectifs configurables |
-| Système War Score | ⚪ | 🟠 HAUTE | Calcul dynamique |
-| Batailles | ⚪ | 🔴 CRITIQUE | Zones, timers, victoire |
-| Sièges | ⚪ | 🟠 HAUTE | Points stratégiques |
-| Créneaux horaires | ⚪ | 🔴 CRITIQUE | Protection hors heures |
-| Traités de paix | ⚪ | 🟠 HAUTE | Négociation |
-| Système coalitions | ⚪ | 🟡 MOYENNE | Alliances guerre |
-| Commandes guerre | ⚪ | 🔴 CRITIQUE | /war * |
-| Intégration DB | ⚪ | 🔴 CRITIQUE | Historique complet |
-| Notifications Discord | ⚪ | 🟡 MOYENNE | Webhook |
+| Setup projet plugin | ✅ | 🔴 CRITIQUE | build.gradle.kts configuré |
+| Structure War/Battle | ✅ | 🔴 CRITIQUE | War, Battle, Siege models complets |
+| Déclaration guerre | ✅ | 🔴 CRITIQUE | WarService.declareWar() complet |
+| War Goals | ✅ | 🔴 CRITIQUE | 8 objectifs configurables |
+| Système War Score | ✅ | 🟠 HAUTE | Calcul dynamique + fatigue |
+| Batailles | ✅ | 🔴 CRITIQUE | BattleService complet |
+| Sièges | ✅ | 🟠 HAUTE | SiegeService complet |
+| Créneaux horaires | ✅ | 🔴 CRITIQUE | BattleTimeSlot + config |
+| Traités de paix | ✅ | 🟠 HAUTE | Proposition + acceptation |
+| Système coalitions | ✅ | 🟡 MOYENNE | joinWar() implémenté |
+| Commandes guerre | ✅ | 🔴 CRITIQUE | /war * (11 sous-commandes) |
+| Commandes bataille | ✅ | 🔴 CRITIQUE | /battle * (12 sous-commandes) |
+| Intégration DB | ✅ | 🔴 CRITIQUE | 9 tables Exposed complètes |
+| Listeners bataille | ✅ | 🟠 HAUTE | PVP, mort, respawn, zones |
+| Listeners guerre | ✅ | 🟠 HAUTE | Notifications, annonces |
+| Configuration plugin | ✅ | 🟠 HAUTE | config.yml complet (200+ lignes) |
+| Intégration HegemoniaNations | 🟢 | 🔴 CRITIQUE | TODOs dans les commandes |
+| Tests unitaires | ⚪ | 🟡 MOYENNE | À implémenter |
+| Notifications Discord | ⚪ | 🟡 MOYENNE | Webhook prévu dans config |
 
-**Durée estimée Phase 5:** 10-14 jours
+**Fichiers créés:**
+- `War.kt` - Modèle de guerre + enums (206 lignes)
+- `Battle.kt` - Modèle de bataille + enums (229 lignes)
+- `WarTables.kt` - 9 tables DAO (187 lignes)
+- `WarService.kt` - Service principal (429 lignes)
+- `BattleService.kt` - Service batailles (428 lignes)
+- `SiegeService.kt` - Service sièges (276 lignes)
+- `WarCommand.kt` - Commandes /war (391 lignes)
+- `BattleCommand.kt` - Commandes /battle (463 lignes)
+- `BattleListener.kt` - Events bataille (256 lignes)
+- `WarListener.kt` - Events guerre (217 lignes)
+- `HegemoniaWar.kt` - Plugin principal (150 lignes)
+- `plugin.yml` - Configuration Bukkit (80 lignes)
+- `config.yml` - Configuration complète (260 lignes)
+
+**Total:** ~3,572 lignes de code
+
+**Durée estimée Phase 5:** 10-14 jours (80% complété)
 
 ---
 
@@ -610,7 +634,7 @@ LANCEMENT PRÉVU : Juillet 2026
 
 ### Développement
 
-- **Lignes de code estimées:** ~50,000+ lignes
+- **Lignes de code actuelles:** ~7,000+ lignes (Core + Nations + War)
 - **Plugins custom:** 10
 - **Mods custom:** 4
 - **Commits Git:** À documenter
@@ -626,6 +650,58 @@ LANCEMENT PRÉVU : Juillet 2026
 ---
 
 ## 🔄 HISTORIQUE DES CHANGEMENTS
+
+### 2026-01-07 (Session 3) - HegemoniWar Plugin
+
+- ✅ **Phase 5 démarrée : Système de Guerre (80%)**
+- ✅ Plugin HegemoniaWar quasi-complet (~3,572 lignes):
+  - **Models complets** (War, Battle, Siege + tous les enums)
+  - **WarService** - Gestion complète des guerres (429 lignes)
+    - Déclaration de guerre avec délai
+    - Gestion des scores et fatigue de guerre
+    - Système de traités de paix
+    - Capitulation et négociation
+    - Système d'alliés et coalitions
+    - Historique complet des événements
+  - **BattleService** - Gestion des batailles (428 lignes)
+    - Création et gestion des batailles
+    - 6 types de batailles (Escarmouche → Grande Bataille)
+    - Système de zones de combat avec rayon
+    - Gestion des participants et statistiques
+    - Calcul automatique des vainqueurs et scores
+  - **SiegeService** - Système de sièges (276 lignes)
+    - Gestion des fortifications (murs, portes)
+    - 6 équipements de siège (bélier → explosifs)
+    - Calcul des bonus défensifs
+    - Système de réparations
+  - **WarCommand** - Commandes /war (391 lignes)
+    - 11 sous-commandes complètes
+    - Tab completion intelligent
+    - System de permissions
+  - **BattleCommand** - Commandes /battle (463 lignes)
+    - 12 sous-commandes complètes
+    - Création et gestion des batailles
+    - Système de respawn
+  - **BattleListener** - Events de bataille (256 lignes)
+    - Gestion PVP en bataille
+    - Mort et respawn automatique
+    - Vérification des zones de combat
+    - Protection friendly fire (optionnelle)
+  - **WarListener** - Events de guerre (217 lignes)
+    - Notifications à la connexion
+    - Annonces globales (déclaration, fin)
+    - Système de sons et titres
+  - **WarTables** - 9 tables database (187 lignes)
+    - Wars, WarParticipants, Battles, BattleParticipants
+    - Sieges, WarEvents, BattleTimeSlots
+    - PeaceTreaties, Truces
+  - **Configuration complète**:
+    - plugin.yml avec permissions détaillées
+    - config.yml exhaustif (260 lignes, 150+ options)
+    - Créneaux horaires configurables
+    - Économie intégrée
+- ✅ Ajout kotlinx-serialization aux dépendances
+- 🟢 **À terminer**: Intégration avec HegemoniaNations (TODOs présents)
 
 ### 2026-01-07 (Session 2) - Suite
 

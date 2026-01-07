@@ -5,6 +5,7 @@
 
 plugins {
     kotlin("jvm") version "1.9.22" apply false
+    kotlin("plugin.serialization") version "1.9.22" apply false
     id("com.github.johnrengelman.shadow") version "8.1.1" apply false
     id("io.papermc.paperweight.userdev") version "1.5.11" apply false
 }
@@ -23,12 +24,14 @@ allprojects {
 
 subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
+    apply(plugin = "org.jetbrains.kotlin.plugin.serialization")
     apply(plugin = "com.github.johnrengelman.shadow")
 
     dependencies {
         // Kotlin
         "implementation"(kotlin("stdlib"))
         "implementation"("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+        "implementation"("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
 
         // Paper API
         "compileOnly"("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")

@@ -2,35 +2,78 @@ name: HegemoniaWar
 version: '${version}'
 main: com.hegemonia.war.HegemoniaWar
 api-version: '1.20'
-author: Hegemonia Team
-description: War system for Hegemonia - Battles, sieges and conquests
-website: https://hegemonia.com
-
 depend:
   - HegemoniaCore
-  - HegemoniaNations
-
 softdepend:
+  - HegemoniaNations
   - HegemoniaEconomy
+authors:
+  - Hegemonia Team
+description: Système de guerre et batailles pour Hegemonia
 
 commands:
   war:
-    description: Main war command
-    aliases: [guerre, w]
-    usage: /<command> [action]
-
+    description: Commandes de gestion des guerres
+    usage: /<command> <subcommand>
+    aliases: [guerre]
   battle:
-    description: Battle commands
+    description: Commandes de gestion des batailles
+    usage: /<command> <subcommand>
     aliases: [bataille]
-    usage: /<command> [action]
 
 permissions:
-  hegemonia.war.admin:
-    description: Full war administrative access
+  hegemonia.war.*:
+    description: Accès complet au système de guerre
     default: op
+    children:
+      hegemonia.war.declare: true
+      hegemonia.war.peace: true
+      hegemonia.war.surrender: true
+      hegemonia.war.join: true
+      hegemonia.war.info: true
+      hegemonia.war.battle.*: true
+      hegemonia.war.admin: true
+
   hegemonia.war.declare:
-    description: Declare war
-    default: true
+    description: Peut déclarer la guerre
+    default: false
+
   hegemonia.war.peace:
-    description: Propose peace
+    description: Peut proposer/accepter la paix
+    default: false
+
+  hegemonia.war.surrender:
+    description: Peut capituler
+    default: false
+
+  hegemonia.war.join:
+    description: Peut rejoindre une guerre comme allié
+    default: false
+
+  hegemonia.war.info:
+    description: Peut voir les informations de guerre
     default: true
+
+  hegemonia.war.battle.*:
+    description: Accès complet aux batailles
+    default: false
+    children:
+      hegemonia.war.battle.join: true
+      hegemonia.war.battle.create: true
+      hegemonia.war.battle.manage: true
+
+  hegemonia.war.battle.join:
+    description: Peut rejoindre une bataille
+    default: true
+
+  hegemonia.war.battle.create:
+    description: Peut créer une bataille
+    default: false
+
+  hegemonia.war.battle.manage:
+    description: Peut gérer les batailles (start/end)
+    default: op
+
+  hegemonia.war.admin:
+    description: Commandes administratives de guerre
+    default: op
