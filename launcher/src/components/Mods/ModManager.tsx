@@ -106,8 +106,20 @@ export default function ModManager({ onReady }: { onReady: () => void }) {
     setInstallStatus('Démarrage de l\'installation...');
 
     try {
+      // Check if Fabric needs to be installed
+      const currentStatus = await invoke<InstallationStatus>('check_installation_status');
+
+      if (!currentStatus.fabric_installed) {
+        setInstallStatus('Installation de Fabric Loader...');
+        await invoke('install_fabric');
+      }
+
+      // Install mods
       await invoke('install_modpack');
+
+      // Create Minecraft profile
       await invoke('create_minecraft_profile');
+
       toast.success('Installation terminée !');
       await checkStatus();
     } catch (error: any) {

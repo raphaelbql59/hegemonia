@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/client';
 import ModManager from '../components/Mods/ModManager';
 
-const LAUNCHER_VERSION = '1.0.7';
+const LAUNCHER_VERSION = '1.0.8';
 
 export default function Dashboard() {
   const { user, logout } = useAuthStore();

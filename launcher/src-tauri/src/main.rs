@@ -22,6 +22,7 @@ fn main() {
             check_installation_status,
             fetch_modpack_manifest,
             install_modpack,
+            install_fabric,
             create_minecraft_profile
         ])
         .run(tauri::generate_context!())

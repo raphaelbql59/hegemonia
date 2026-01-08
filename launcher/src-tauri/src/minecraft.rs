@@ -371,6 +371,65 @@ pub async fn install_modpack(window: Window) -> Result<String, String> {
     Ok(format!("{} mods installés avec succès", installed_count))
 }
 
+/// Install Fabric Loader automatically
+#[tauri::command]
+pub async fn install_fabric(window: Window) -> Result<String, String> {
+    let minecraft_dir = get_minecraft_dir();
+    let hegemonia_dir = get_hegemonia_dir();
+    let temp_dir = hegemonia_dir.join("temp");
+
+    // Create temp directory
+    fs::create_dir_all(&temp_dir)
+        .map_err(|e| format!("Failed to create temp directory: {}", e))?;
+
+    window.emit("install-status", "Téléchargement de Fabric Installer...").ok();
+
+    // Download Fabric installer
+    let fabric_installer_url = "https://maven.fabricmc.net/net/fabricmc/fabric-installer/1.0.1/fabric-installer-1.0.1.jar";
+    let installer_path = temp_dir.join("fabric-installer.jar");
+
+    let client = reqwest::Client::new();
+    let response = client.get(fabric_installer_url)
+        .send()
+        .await
+        .map_err(|e| format!("Failed to download Fabric installer: {}", e))?;
+
+    let bytes = response.bytes()
+        .await
+        .map_err(|e| format!("Failed to read installer bytes: {}", e))?;
+
+    fs::write(&installer_path, &bytes)
+        .map_err(|e| format!("Failed to save installer: {}", e))?;
+
+    window.emit("install-status", "Installation de Fabric Loader...").ok();
+
+    // Run Fabric installer
+    let output = std::process::Command::new("java")
+        .args([
+            "-jar",
+            installer_path.to_str().unwrap(),
+            "client",
+            "-dir", minecraft_dir.to_str().unwrap(),
+            "-mcversion", MINECRAFT_VERSION,
+            "-loader", FABRIC_VERSION,
+            "-noprofile",
+        ])
+        .output()
+        .map_err(|e| format!("Failed to run Fabric installer: {}", e))?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return Err(format!("Fabric installation failed: {}", stderr));
+    }
+
+    // Clean up
+    let _ = fs::remove_file(&installer_path);
+
+    window.emit("install-status", "Fabric Loader installé !").ok();
+
+    Ok("Fabric Loader installed successfully".to_string())
+}
+
 /// Create Minecraft profile for Hegemonia
 #[tauri::command]
 pub async fn create_minecraft_profile() -> Result<String, String> {
