@@ -20,7 +20,7 @@ pub struct MinecraftPath {
 // Minecraft Commands
 // ============================================================================
 
-/// Lance Minecraft avec les arguments fournis
+/// Lance Minecraft avec le profil Hegemonia via le launcher officiel
 #[tauri::command]
 pub async fn launch_minecraft(
     username: String,
@@ -41,13 +41,14 @@ pub async fn launch_minecraft(
     // Save launch info for debugging
     let log_path = hegemonia_path.join("launch.log");
     let log_content = format!(
-        "Launch attempt at: {:?}\nUsername: {}\nUUID: {}\nServer: {}:{}\nMinecraft path: {:?}\n",
+        "Launch attempt at: {:?}\nUsername: {}\nUUID: {}\nServer: {}:{}\nMinecraft path: {:?}\nHegemonia path: {:?}\n",
         std::time::SystemTime::now(),
         username,
         uuid,
         server_ip,
         server_port,
-        minecraft_path
+        minecraft_path,
+        hegemonia_path
     );
     let _ = std::fs::write(&log_path, &log_content);
 
@@ -55,73 +56,94 @@ pub async fn launch_minecraft(
         return Err("Minecraft n'est pas installé. Veuillez installer Minecraft Java Edition 1.20.4".to_string());
     }
 
-    // Check if versions/1.20.4 exists
-    let version_path = minecraft_path.join("versions").join("1.20.4");
-    if !version_path.exists() {
-        return Err("La version 1.20.4 de Minecraft n'est pas installée. Lancez le launcher Minecraft officiel pour installer la version 1.20.4".to_string());
+    // Copy mods to .minecraft/mods for the game to load them
+    let source_mods = hegemonia_path.join("mods");
+    let target_mods = minecraft_path.join("mods");
+
+    if source_mods.exists() {
+        // Create mods directory in .minecraft
+        if let Err(e) = std::fs::create_dir_all(&target_mods) {
+            let _ = std::fs::write(&log_path, format!("{}Warning: Could not create mods dir: {}\n", log_content, e));
+        }
+
+        // Copy each mod file
+        if let Ok(entries) = std::fs::read_dir(&source_mods) {
+            for entry in entries.flatten() {
+                let src = entry.path();
+                if src.extension().map(|e| e == "jar").unwrap_or(false) {
+                    let dest = target_mods.join(entry.file_name());
+                    if !dest.exists() {
+                        let _ = std::fs::copy(&src, &dest);
+                    }
+                }
+            }
+        }
     }
 
-    // Build classpath with proper separator for Windows
+    // Create server.dat to auto-connect (optional)
+    let servers_file = minecraft_path.join("servers.dat");
+    if !servers_file.exists() {
+        // This would require NBT writing, skip for now
+    }
+
+    // Launch Minecraft Launcher with Hegemonia profile
     #[cfg(target_os = "windows")]
-    let classpath_sep = ";";
-    #[cfg(not(target_os = "windows"))]
-    let classpath_sep = ":";
-
-    let version_jar = version_path.join("1.20.4.jar");
-    let libraries_path = minecraft_path.join("libraries");
-
-    // Simplified classpath for now
-    let classpath = format!(
-        "{}{}{}{}*",
-        version_jar.to_str().unwrap_or(""),
-        classpath_sep,
-        libraries_path.to_str().unwrap_or(""),
-        std::path::MAIN_SEPARATOR
-    );
-
-    let natives_path = minecraft_path.join("versions").join("1.20.4").join("natives");
-    let assets_path = minecraft_path.join("assets");
-    let game_dir = minecraft_path.to_str().unwrap_or(".");
-
-    // Arguments Java pour lancer Minecraft
-    let java_args = vec![
-        "-Xmx2G".to_string(),
-        "-Xms1G".to_string(),
-        format!("-Djava.library.path={}", natives_path.to_str().unwrap_or("natives")),
-        "-cp".to_string(),
-        classpath,
-        "net.minecraft.client.main.Main".to_string(),
-        "--username".to_string(), username.clone(),
-        "--version".to_string(), "1.20.4".to_string(),
-        "--gameDir".to_string(), game_dir.to_string(),
-        "--assetsDir".to_string(), assets_path.to_str().unwrap_or("assets").to_string(),
-        "--assetIndex".to_string(), "16".to_string(),
-        "--uuid".to_string(), uuid.clone(),
-        "--accessToken".to_string(), "0".to_string(),
-        "--userType".to_string(), "legacy".to_string(),
-        "--server".to_string(), server_ip.clone(),
-        "--port".to_string(), server_port.clone(),
-    ];
-
-    // Log the command for debugging
-    let cmd_log = format!("Command: java {}\n", java_args.join(" "));
-    let _ = std::fs::write(&log_path, format!("{}{}", log_content, cmd_log));
-
-    match Command::new("java")
-        .args(&java_args)
-        .current_dir(&minecraft_path)
-        .spawn()
     {
-        Ok(child) => {
-            // Log success
-            let _ = std::fs::write(&log_path, format!("{}{}Minecraft process spawned with PID: {:?}\n", log_content, cmd_log, child.id()));
-            Ok(format!("Minecraft lancé avec succès ! (PID: {:?})", child.id()))
-        },
-        Err(e) => {
-            let err_msg = format!("Erreur lors du lancement de Minecraft: {}", e);
-            let _ = std::fs::write(&log_path, format!("{}{}ERROR: {}\n", log_content, cmd_log, err_msg));
-            Err(err_msg)
-        },
+        // Try to find Minecraft Launcher
+        let launcher_paths = vec![
+            std::env::var("LOCALAPPDATA").unwrap_or_default() + "\\Packages\\Microsoft.4297127D64EC6_8wekyb3d8bbwe\\LocalCache\\Local\\runtime\\java-runtime-gamma\\windows-x64\\java-runtime-gamma\\bin\\javaw.exe",
+            std::env::var("PROGRAMFILES(X86)").unwrap_or_default() + "\\Minecraft Launcher\\MinecraftLauncher.exe",
+            std::env::var("PROGRAMFILES").unwrap_or_default() + "\\Minecraft Launcher\\MinecraftLauncher.exe",
+        ];
+
+        // Try to open Minecraft Launcher
+        let launcher_exe = std::env::var("LOCALAPPDATA").unwrap_or_default() + "\\Programs\\Minecraft Launcher\\MinecraftLauncher.exe";
+
+        let _ = std::fs::write(&log_path, format!("{}Trying to launch: {}\n", log_content, launcher_exe));
+
+        // Use shell open to launch Minecraft Launcher
+        match Command::new("cmd")
+            .args(["/C", "start", "", "minecraft://"])
+            .spawn()
+        {
+            Ok(_) => {
+                let _ = std::fs::write(&log_path, format!("{}Minecraft Launcher opened via minecraft:// protocol\n", log_content));
+                Ok("Le launcher Minecraft s'ouvre. Sélectionnez le profil 'Hegemonia' et cliquez sur Jouer !".to_string())
+            }
+            Err(e) => {
+                // Fallback: try direct exe
+                match Command::new(&launcher_exe).spawn() {
+                    Ok(_) => {
+                        let _ = std::fs::write(&log_path, format!("{}Minecraft Launcher opened directly\n", log_content));
+                        Ok("Le launcher Minecraft s'ouvre. Sélectionnez le profil 'Hegemonia' et cliquez sur Jouer !".to_string())
+                    }
+                    Err(e2) => {
+                        let err = format!("Impossible d'ouvrir le launcher Minecraft: {} / {}", e, e2);
+                        let _ = std::fs::write(&log_path, format!("{}ERROR: {}\n", log_content, err));
+                        Err(err)
+                    }
+                }
+            }
+        }
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        match Command::new("open")
+            .args(["-a", "Minecraft"])
+            .spawn()
+        {
+            Ok(_) => Ok("Le launcher Minecraft s'ouvre. Sélectionnez le profil 'Hegemonia' et cliquez sur Jouer !".to_string()),
+            Err(e) => Err(format!("Impossible d'ouvrir Minecraft: {}", e)),
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        match Command::new("minecraft-launcher").spawn() {
+            Ok(_) => Ok("Le launcher Minecraft s'ouvre. Sélectionnez le profil 'Hegemonia' et cliquez sur Jouer !".to_string()),
+            Err(e) => Err(format!("Impossible d'ouvrir le launcher Minecraft: {}", e)),
+        }
     }
 }
 

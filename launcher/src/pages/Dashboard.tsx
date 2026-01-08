@@ -1,20 +1,29 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { toast, Toaster } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { invoke } from '@tauri-apps/api/tauri';
+import { listen } from '@tauri-apps/api/event';
 import { useAuthStore } from '../store/authStore';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/client';
-import ModManager from '../components/Mods/ModManager';
 
-const LAUNCHER_VERSION = '1.0.8';
+const LAUNCHER_VERSION = '1.0.9';
+
+interface InstallationStatus {
+  minecraft_installed: boolean;
+  fabric_installed: boolean;
+  mods_installed: boolean;
+  mods_outdated: string[];
+  resource_pack_installed: boolean;
+  needs_update: boolean;
+}
 
 export default function Dashboard() {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
   const [launching, setLaunching] = useState(false);
-  const [gameReady, setGameReady] = useState(false);
+  const [installStatus, setInstallStatus] = useState<string>('');
 
   // Fetch server status
   const { data: serverStatus } = useQuery({
@@ -46,6 +55,17 @@ export default function Dashboard() {
     enabled: !!user?.minecraftUuid,
   });
 
+  // Listen for install status updates
+  useEffect(() => {
+    const unlistenStatus = listen<string>('install-status', (event) => {
+      setInstallStatus(event.payload);
+    });
+
+    return () => {
+      unlistenStatus.then(f => f());
+    };
+  }, []);
+
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -56,7 +76,7 @@ export default function Dashboard() {
     if (!user || launching) return;
 
     setLaunching(true);
-    const toastId = toast.loading('Lancement de Minecraft...');
+    const toastId = toast.loading('Vérification de l\'installation...');
 
     try {
       // Check if Minecraft is installed
@@ -67,7 +87,31 @@ export default function Dashboard() {
         return;
       }
 
+      // Check installation status
+      const status = await invoke<InstallationStatus>('check_installation_status');
+
+      // Install Fabric if needed
+      if (!status.fabric_installed) {
+        toast.loading('Installation de Fabric Loader...', { id: toastId });
+        await invoke('install_fabric');
+      }
+
+      // Install mods if needed
+      if (!status.mods_installed || status.needs_update) {
+        toast.loading('Installation des mods...', { id: toastId });
+        await invoke('install_modpack');
+      }
+
+      // Create profile if needed
+      toast.loading('Préparation du lancement...', { id: toastId });
+      try {
+        await invoke('create_minecraft_profile');
+      } catch (e) {
+        // Profile creation might fail if already exists, that's ok
+      }
+
       // Launch Minecraft
+      toast.loading('Lancement de Minecraft...', { id: toastId });
       await invoke('launch_minecraft', {
         username: user.username,
         uuid: user.minecraftUuid || user.uuid,
@@ -75,15 +119,17 @@ export default function Dashboard() {
         serverPort: '25577',
       });
 
-      toast.success('Minecraft lancé ! Le launcher va se fermer.', { id: toastId });
+      toast.success('Minecraft lancé !', { id: toastId });
 
-      // Keep button disabled for 5 seconds to prevent multiple launches
+      // Keep button disabled for 10 seconds to prevent multiple launches
       setTimeout(() => {
         setLaunching(false);
-      }, 5000);
+        setInstallStatus('');
+      }, 10000);
     } catch (error: any) {
       toast.error(error?.message || error || 'Erreur lors du lancement', { id: toastId });
       setLaunching(false);
+      setInstallStatus('');
     }
   };
 
@@ -165,9 +211,6 @@ export default function Dashboard() {
 
           {/* Center panel - Play button */}
           <div className="col-span-6">
-            {/* Mod Manager - shows only when installation is needed */}
-            <ModManager onReady={() => setGameReady(true)} />
-
             <div className="glass rounded-xl p-8">
               {/* Server status */}
               <div className="mb-8 text-center">
@@ -183,19 +226,26 @@ export default function Dashboard() {
                 </div>
               </div>
 
+              {/* Install status */}
+              {installStatus && (
+                <div className="mb-4 p-3 bg-dark-900 rounded-lg">
+                  <p className="text-sm text-center text-primary-400">{installStatus}</p>
+                </div>
+              )}
+
               {/* Play button */}
               <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: launching ? 1 : 1.05 }}
+                whileTap={{ scale: launching ? 1 : 0.95 }}
                 onClick={handleLaunch}
-                disabled={launching || !serverStatus?.online || !gameReady}
+                disabled={launching || !serverStatus?.online}
                 className="w-full py-6 px-8 bg-gradient-to-r from-primary-500 to-primary-600 text-white text-2xl font-display font-bold rounded-xl shadow-2xl glow disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
-                {launching ? 'LANCEMENT...' : gameReady ? 'JOUER' : 'INSTALLATION REQUISE'}
+                {launching ? (installStatus || 'LANCEMENT...') : 'JOUER'}
               </motion.button>
 
               <p className="text-center text-sm text-gray-400 mt-4">
-                Version Minecraft : 1.20.4
+                Version Minecraft : 1.20.4 • Fabric
               </p>
 
               {/* MOTD */}
