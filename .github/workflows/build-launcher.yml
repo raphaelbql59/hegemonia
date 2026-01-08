@@ -42,6 +42,10 @@ jobs:
         working-directory: ./launcher
         run: npm ci
 
+      - name: Create .env file
+        working-directory: ./launcher
+        run: echo "VITE_API_URL=http://51.75.31.173:3001/api" > .env
+
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0
         env:
