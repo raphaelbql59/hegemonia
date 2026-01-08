@@ -7,6 +7,7 @@ import authRoutes from './routes/auth.js';
 import newsRoutes from './routes/news.js';
 import statsRoutes from './routes/stats.js';
 import serverRoutes from './routes/server.js';
+import modpackRoutes from './routes/modpack.js';
 
 // Load environment variables
 dotenv.config();
@@ -55,6 +56,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/server', serverRoutes);
+app.use('/api/modpack', modpackRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

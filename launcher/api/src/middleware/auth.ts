@@ -119,5 +119,5 @@ export function generateToken(userId: number, email: string, role: string): stri
 
   const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
 
-  return jwt.sign(payload, secret, { expiresIn });
+  return jwt.sign(payload, secret, { expiresIn } as jwt.SignOptions);
 }
