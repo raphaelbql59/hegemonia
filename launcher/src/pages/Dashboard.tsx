@@ -13,7 +13,7 @@ export default function Dashboard() {
   const [launching, setLaunching] = useState(false);
 
   // Fetch server status
-  const { data: serverStatus, isLoading: statusLoading } = useQuery({
+  const { data: serverStatus } = useQuery({
     queryKey: ['serverStatus'],
     queryFn: async () => {
       const response = await api.get('/server/status');
