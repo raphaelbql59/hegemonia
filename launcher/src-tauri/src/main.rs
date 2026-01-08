@@ -3,9 +3,11 @@
 
 mod commands;
 mod minecraft;
+mod launcher;
 
 use commands::*;
 use minecraft::*;
+use launcher::*;
 
 fn main() {
     tauri::Builder::default()
@@ -23,7 +25,10 @@ fn main() {
             fetch_modpack_manifest,
             install_modpack,
             install_fabric,
-            create_minecraft_profile
+            create_minecraft_profile,
+            // Direct launcher
+            launch_game,
+            check_game_ready
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

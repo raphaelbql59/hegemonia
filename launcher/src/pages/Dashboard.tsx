@@ -8,7 +8,7 @@ import { useAuthStore } from '../store/authStore';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/client';
 
-const LAUNCHER_VERSION = '1.0.9';
+const LAUNCHER_VERSION = '1.1.0';
 
 interface InstallationStatus {
   minecraft_installed: boolean;
@@ -76,56 +76,42 @@ export default function Dashboard() {
     if (!user || launching) return;
 
     setLaunching(true);
-    const toastId = toast.loading('Vérification de l\'installation...');
+    const toastId = toast.loading('Préparation du lancement...');
 
     try {
-      // Check if Minecraft is installed
-      const installed = await invoke('check_minecraft_installed');
-      if (!installed) {
-        toast.error('Minecraft n\'est pas installé. Installez Minecraft Java Edition 1.20.4', { id: toastId });
+      // Check Java
+      const javaInstalled = await invoke('check_java_installed');
+      if (!javaInstalled) {
+        toast.error('Java n\'est pas installé. Installez Java 17 ou plus récent.', { id: toastId });
         setLaunching(false);
         return;
       }
 
-      // Check installation status
+      // Install mods first (they're needed for the game)
       const status = await invoke<InstallationStatus>('check_installation_status');
-
-      // Install Fabric if needed
-      if (!status.fabric_installed) {
-        toast.loading('Installation de Fabric Loader...', { id: toastId });
-        await invoke('install_fabric');
-      }
-
-      // Install mods if needed
       if (!status.mods_installed || status.needs_update) {
-        toast.loading('Installation des mods...', { id: toastId });
+        toast.loading('Téléchargement des mods...', { id: toastId });
         await invoke('install_modpack');
       }
 
-      // Create profile if needed
-      toast.loading('Préparation du lancement...', { id: toastId });
-      try {
-        await invoke('create_minecraft_profile');
-      } catch (e) {
-        // Profile creation might fail if already exists, that's ok
-      }
-
-      // Launch Minecraft
-      toast.loading('Lancement de Minecraft...', { id: toastId });
-      await invoke('launch_minecraft', {
+      // Launch game with full Minecraft download
+      toast.loading('Lancement du jeu...', { id: toastId });
+      await invoke('launch_game', {
         username: user.username,
         uuid: user.minecraftUuid || user.uuid,
+        accessToken: '0', // Offline mode with Hegemonia auth
         serverIp: '51.75.31.173',
         serverPort: '25577',
+        ramMb: 4096, // 4GB RAM
       });
 
       toast.success('Minecraft lancé !', { id: toastId });
 
-      // Keep button disabled for 10 seconds to prevent multiple launches
+      // Keep button disabled for 15 seconds to prevent multiple launches
       setTimeout(() => {
         setLaunching(false);
         setInstallStatus('');
-      }, 10000);
+      }, 15000);
     } catch (error: any) {
       toast.error(error?.message || error || 'Erreur lors du lancement', { id: toastId });
       setLaunching(false);
