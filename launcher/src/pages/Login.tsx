@@ -22,7 +22,7 @@ export default function Login() {
       toast.success(`Bienvenue, ${response.user.username} !`);
       navigate('/dashboard');
     } catch (error: any) {
-      const message = error.response?.data?.error || 'Erreur de connexion';
+      const message = error.message || 'Erreur de connexion';
       toast.error(message);
     } finally {
       setLoading(false);

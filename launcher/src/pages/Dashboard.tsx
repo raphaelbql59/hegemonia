@@ -16,7 +16,7 @@ export default function Dashboard() {
   const { data: serverStatus } = useQuery({
     queryKey: ['serverStatus'],
     queryFn: async () => {
-      const response = await api.get('/server/status');
+      const response = await api.get<any>('/server/status');
       return response.data;
     },
     refetchInterval: 30000, // Refresh every 30s
@@ -26,7 +26,7 @@ export default function Dashboard() {
   const { data: news, isLoading: newsLoading } = useQuery({
     queryKey: ['news'],
     queryFn: async () => {
-      const response = await api.get('/news');
+      const response = await api.get<any[]>('/news');
       return response.data;
     },
   });
@@ -36,7 +36,7 @@ export default function Dashboard() {
     queryKey: ['stats', user?.minecraftUuid],
     queryFn: async () => {
       if (!user?.minecraftUuid) return null;
-      const response = await api.get(`/stats/${user.minecraftUuid}`);
+      const response = await api.get<any>(`/stats/${user.minecraftUuid}`);
       return response.data;
     },
     enabled: !!user?.minecraftUuid,

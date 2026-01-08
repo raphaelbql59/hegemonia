@@ -1,11 +1,11 @@
-import { fetch } from '@tauri-apps/api/http';
+import { fetch, ResponseType } from '@tauri-apps/api/http';
 import { useAuthStore } from '../store/authStore';
 
 const API_URL = 'http://api.hegemonia.net/api';
 
 // Tauri HTTP API wrapper
 export const api = {
-  async get(endpoint: string) {
+  async get<T = any>(endpoint: string): Promise<{ data: T }> {
     const token = useAuthStore.getState().token;
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -14,9 +14,10 @@ export const api = {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await fetch(`${API_URL}${endpoint}`, {
+    const response = await fetch<T>(`${API_URL}${endpoint}`, {
       method: 'GET',
       headers,
+      responseType: ResponseType.JSON,
     });
 
     if (!response.ok) {
@@ -30,7 +31,7 @@ export const api = {
     return { data: response.data };
   },
 
-  async post(endpoint: string, data?: any) {
+  async post<T = any>(endpoint: string, data?: any): Promise<{ data: T }> {
     const token = useAuthStore.getState().token;
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -39,9 +40,10 @@ export const api = {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await fetch(`${API_URL}${endpoint}`, {
+    const response = await fetch<T>(`${API_URL}${endpoint}`, {
       method: 'POST',
       headers,
+      responseType: ResponseType.JSON,
       body: data ? { type: 'Json', payload: data } : undefined,
     });
 
