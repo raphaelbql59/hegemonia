@@ -1,8 +1,9 @@
+import { fetch } from '@tauri-apps/api/http';
 import { useAuthStore } from '../store/authStore';
 
 const API_URL = 'http://api.hegemonia.net/api';
 
-// Simple fetch wrapper
+// Tauri HTTP API wrapper
 export const api = {
   async get(endpoint: string) {
     const token = useAuthStore.getState().token;
@@ -22,11 +23,11 @@ export const api = {
       if (response.status === 401) {
         useAuthStore.getState().logout();
       }
-      const error = await response.json().catch(() => ({ error: 'Erreur de connexion' }));
-      throw new Error(error.error || 'Erreur serveur');
+      const error = response.data as any;
+      throw new Error(error?.error || 'Erreur serveur');
     }
 
-    return { data: await response.json() };
+    return { data: response.data };
   },
 
   async post(endpoint: string, data?: any) {
@@ -41,18 +42,18 @@ export const api = {
     const response = await fetch(`${API_URL}${endpoint}`, {
       method: 'POST',
       headers,
-      body: data ? JSON.stringify(data) : undefined,
+      body: data ? { type: 'Json', payload: data } : undefined,
     });
 
     if (!response.ok) {
       if (response.status === 401) {
         useAuthStore.getState().logout();
       }
-      const error = await response.json().catch(() => ({ error: 'Erreur de connexion' }));
-      throw new Error(error.error || 'Erreur serveur');
+      const error = response.data as any;
+      throw new Error(error?.error || 'Erreur serveur');
     }
 
-    return { data: await response.json() };
+    return { data: response.data };
   },
 };
 
