@@ -44,7 +44,7 @@
       "http": {
         "all": true,
         "request": true,
-        "scope": ["https://**", "http://localhost:3001/**", "http://51.75.31.173:3001/**"]
+        "scope": ["https://**", "http://**", "http://api.hegemonia.net/**", "http://localhost:3001/**"]
       },
       "os": {
         "all": true
