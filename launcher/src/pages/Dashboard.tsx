@@ -6,11 +6,15 @@ import { invoke } from '@tauri-apps/api/tauri';
 import { useAuthStore } from '../store/authStore';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/client';
+import ModManager from '../components/Mods/ModManager';
+
+const LAUNCHER_VERSION = '1.0.6';
 
 export default function Dashboard() {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
   const [launching, setLaunching] = useState(false);
+  const [gameReady, setGameReady] = useState(false);
 
   // Fetch server status
   const { data: serverStatus } = useQuery({
@@ -92,7 +96,7 @@ export default function Dashboard() {
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <h1 className="text-2xl font-display font-bold text-gradient">HEGEMONIA</h1>
-            <span className="text-sm text-gray-400">Launcher v1.0.0</span>
+            <span className="text-sm text-gray-400">Launcher v{LAUNCHER_VERSION}</span>
           </div>
 
           <div className="flex items-center gap-4">
@@ -161,6 +165,9 @@ export default function Dashboard() {
 
           {/* Center panel - Play button */}
           <div className="col-span-6">
+            {/* Mod Manager - shows only when installation is needed */}
+            <ModManager onReady={() => setGameReady(true)} />
+
             <div className="glass rounded-xl p-8">
               {/* Server status */}
               <div className="mb-8 text-center">
@@ -181,10 +188,10 @@ export default function Dashboard() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleLaunch}
-                disabled={launching || !serverStatus?.online}
+                disabled={launching || !serverStatus?.online || !gameReady}
                 className="w-full py-6 px-8 bg-gradient-to-r from-primary-500 to-primary-600 text-white text-2xl font-display font-bold rounded-xl shadow-2xl glow disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
-                {launching ? 'LANCEMENT...' : 'JOUER'}
+                {launching ? 'LANCEMENT...' : gameReady ? 'JOUER' : 'INSTALLATION REQUISE'}
               </motion.button>
 
               <p className="text-center text-sm text-gray-400 mt-4">
