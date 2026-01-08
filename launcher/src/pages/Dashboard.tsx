@@ -49,16 +49,17 @@ export default function Dashboard() {
   };
 
   const handleLaunch = async () => {
-    if (!user) return;
+    if (!user || launching) return;
 
     setLaunching(true);
-    toast.loading('Lancement de Minecraft...');
+    const toastId = toast.loading('Lancement de Minecraft...');
 
     try {
       // Check if Minecraft is installed
       const installed = await invoke('check_minecraft_installed');
       if (!installed) {
-        toast.error('Minecraft n\'est pas installé. Installez Minecraft Java Edition 1.20.4');
+        toast.error('Minecraft n\'est pas installé. Installez Minecraft Java Edition 1.20.4', { id: toastId });
+        setLaunching(false);
         return;
       }
 
@@ -70,10 +71,14 @@ export default function Dashboard() {
         serverPort: '25577',
       });
 
-      toast.success('Minecraft lancé avec succès !');
+      toast.success('Minecraft lancé ! Le launcher va se fermer.', { id: toastId });
+
+      // Keep button disabled for 5 seconds to prevent multiple launches
+      setTimeout(() => {
+        setLaunching(false);
+      }, 5000);
     } catch (error: any) {
-      toast.error(error || 'Erreur lors du lancement');
-    } finally {
+      toast.error(error?.message || error || 'Erreur lors du lancement', { id: toastId });
       setLaunching(false);
     }
   };
