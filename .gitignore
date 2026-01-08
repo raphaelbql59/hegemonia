@@ -250,3 +250,9 @@ temp/
 # Gardons les dossiers vides avec .gitkeep
 !**/.gitkeep
 .claude/
+
+# Downloads server (local only)
+downloads/
+
+# Launcher env production (contains VPS IP)
+launcher/.env.production

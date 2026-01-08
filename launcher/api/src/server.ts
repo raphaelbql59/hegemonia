@@ -21,14 +21,9 @@ const PORT = process.env.PORT || 3001;
 // Security headers
 app.use(helmet());
 
-// CORS for Tauri
+// CORS for Tauri and external connections
 app.use(cors({
-  origin: [
-    'tauri://localhost',
-    'http://tauri.localhost',
-    'http://localhost:1420',
-    'https://hegemonia.fr'
-  ],
+  origin: true, // Allow all origins for launcher
   credentials: true,
 }));
 
@@ -83,7 +78,7 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 // Start Server
 // ============================================================================
 
-app.listen(PORT, () => {
+app.listen(Number(PORT), '0.0.0.0', () => {
   console.log('');
   console.log('═══════════════════════════════════════════════════');
   console.log(`🚀 Hegemonia Launcher API`);

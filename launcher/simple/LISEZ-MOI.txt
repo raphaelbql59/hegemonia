@@ -1,0 +1,50 @@
+===============================================
+        HEGEMONIA LAUNCHER
+    Serveur Geopolitique Minecraft
+===============================================
+
+INSTRUCTIONS D'INSTALLATION
+---------------------------
+
+1. INSTALLER PYTHON (si pas deja fait)
+   - Allez sur: https://www.python.org/downloads/
+   - Telechargez Python 3.11 ou superieur
+   - IMPORTANT: Cochez "Add Python to PATH" pendant l'installation
+
+2. LANCER LE LAUNCHER
+   - Double-cliquez sur "Lancer_Hegemonia.bat"
+   - Ou faites un clic droit sur launcher_auth.py > Ouvrir avec > Python
+
+3. CONNEXION
+   - Utilisez vos identifiants Hegemonia
+   - Email: votre@email.com
+   - Mot de passe: votre mot de passe
+
+4. JOUER
+   - Cliquez sur "JOUER" pour lancer Minecraft
+   - Le jeu se connectera automatiquement au serveur
+
+
+INFORMATIONS SERVEUR
+--------------------
+IP: 51.75.31.173
+Port: 25577
+Version: Minecraft 1.20.4
+
+
+BESOIN D'AIDE ?
+---------------
+- Discord: (bientot disponible)
+- Email: support@hegemonia.fr
+
+
+FICHIERS INCLUS
+---------------
+- launcher_auth.py : Le launcher principal
+- Lancer_Hegemonia.bat : Script de lancement Windows
+- LISEZ-MOI.txt : Ce fichier
+
+
+===============================================
+(c) 2026 Hegemonia - Tous droits reserves
+===============================================

@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::process::Command;
-use tauri::api::process::{Command as TauriCommand, CommandEvent};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SystemInfo {
