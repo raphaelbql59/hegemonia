@@ -117,34 +117,11 @@ struct AssetObject {
 // ============================================================================
 
 #[derive(Debug, Deserialize)]
-struct FabricLoaderVersion {
-    loader: FabricLoader,
-    #[serde(rename = "launcherMeta")]
-    launcher_meta: FabricLauncherMeta,
-}
-
-#[derive(Debug, Deserialize)]
-struct FabricLoader {
-    version: String,
-    maven: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct FabricLauncherMeta {
+struct FabricProfile {
+    id: String,
     #[serde(rename = "mainClass")]
-    main_class: MainClass,
-    libraries: FabricLibraries,
-}
-
-#[derive(Debug, Deserialize)]
-struct MainClass {
-    client: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct FabricLibraries {
-    client: Vec<FabricLibrary>,
-    common: Vec<FabricLibrary>,
+    main_class: String,
+    libraries: Vec<FabricLibrary>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -489,22 +466,19 @@ pub async fn launch_game(
         FABRIC_META_URL, MINECRAFT_VERSION, FABRIC_LOADER_VERSION
     );
 
-    let fabric_meta: FabricLoaderVersion = client.get(&fabric_url)
+    let fabric_profile: FabricProfile = client.get(&fabric_url)
         .send()
         .await
-        .map_err(|e| format!("Failed to fetch Fabric meta: {}", e))?
+        .map_err(|e| format!("Failed to fetch Fabric profile: {}", e))?
         .json()
         .await
-        .map_err(|e| format!("Failed to parse Fabric meta: {}", e))?;
+        .map_err(|e| format!("Failed to parse Fabric profile: {}", e))?;
 
     // Download Fabric libraries
-    let fabric_libs: Vec<&FabricLibrary> = fabric_meta.launcher_meta.libraries.common.iter()
-        .chain(fabric_meta.launcher_meta.libraries.client.iter())
-        .collect();
-
-    for (i, lib) in fabric_libs.iter().enumerate() {
-        let progress = 70 + (i * 15 / fabric_libs.len().max(1)) as u64;
-        emit_progress(&window, "fabric", &format!("Fabric lib {}/{}", i + 1, fabric_libs.len()), progress, 100);
+    let total_fabric_libs = fabric_profile.libraries.len();
+    for (i, lib) in fabric_profile.libraries.iter().enumerate() {
+        let progress = 70 + (i * 15 / total_fabric_libs.max(1)) as u64;
+        emit_progress(&window, "fabric", &format!("Fabric lib {}/{}", i + 1, total_fabric_libs), progress, 100);
 
         let path = maven_to_path(&lib.name);
         let lib_path = libraries_dir.join(&path);
@@ -518,6 +492,9 @@ pub async fn launch_game(
 
     // Add client jar to classpath
     classpath_entries.push(client_jar.to_string_lossy().to_string());
+
+    // Store Fabric main class for later
+    let fabric_main_class = fabric_profile.main_class.clone();
 
     // ========================================================================
     // Step 7: Download mods
@@ -551,7 +528,7 @@ pub async fn launch_game(
         natives_arg,
         "-cp".to_string(),
         classpath,
-        fabric_meta.launcher_meta.main_class.client.clone(),
+        fabric_main_class,
         "--username".to_string(), username.clone(),
         "--version".to_string(), format!("fabric-loader-{}-{}", FABRIC_LOADER_VERSION, MINECRAFT_VERSION),
         "--gameDir".to_string(), game_dir.to_string_lossy().to_string(),
