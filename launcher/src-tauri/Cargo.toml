@@ -1,6 +1,6 @@
 [package]
 name = "hegemonia-launcher"
-version = "1.1.4"
+version = "1.1.5"
 description = "Launcher professionnel ultra moderne pour Hegemonia"
 authors = ["Hegemonia Team"]
 license = ""

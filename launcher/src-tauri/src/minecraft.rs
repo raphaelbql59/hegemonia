@@ -172,11 +172,11 @@ fn get_fallback_manifest() -> HegemoniaPack {
             ModInfo {
                 id: "fabric-api".to_string(),
                 name: "Fabric API".to_string(),
-                version: "0.92.0+1.20.4".to_string(),
-                file_name: "fabric-api-0.92.0+1.20.4.jar".to_string(),
-                url: Some("https://cdn.modrinth.com/data/P7dR8mSH/versions/P7uGFii0/fabric-api-0.92.0%2B1.20.4.jar".to_string()),
+                version: "0.97.3+1.20.4".to_string(),
+                file_name: "fabric-api-0.97.3+1.20.4.jar".to_string(),
+                url: Some("https://cdn.modrinth.com/data/P7dR8mSH/versions/BPX6fK06/fabric-api-0.97.3%2B1.20.4.jar".to_string()),
                 sha256: String::new(),
-                size: 2134567,
+                size: 2187523,
                 required: true,
             },
             ModInfo {
@@ -184,9 +184,9 @@ fn get_fallback_manifest() -> HegemoniaPack {
                 name: "Sodium".to_string(),
                 version: "0.5.8+mc1.20.4".to_string(),
                 file_name: "sodium-fabric-0.5.8+mc1.20.4.jar".to_string(),
-                url: Some("https://cdn.modrinth.com/data/AANobbMI/versions/b4hTi3mo/sodium-fabric-0.5.8%2Bmc1.20.4.jar".to_string()),
+                url: Some("https://cdn.modrinth.com/data/AANobbMI/versions/4GyXKCLd/sodium-fabric-0.5.8%2Bmc1.20.4.jar".to_string()),
                 sha256: String::new(),
-                size: 1876234,
+                size: 1134567,
                 required: true,
             },
             ModInfo {
@@ -199,38 +199,8 @@ fn get_fallback_manifest() -> HegemoniaPack {
                 size: 598432,
                 required: true,
             },
-            ModInfo {
-                id: "modmenu".to_string(),
-                name: "Mod Menu".to_string(),
-                version: "9.0.0".to_string(),
-                file_name: "modmenu-9.0.0.jar".to_string(),
-                url: Some("https://cdn.modrinth.com/data/mOgUt4GM/versions/IYlsoQxR/modmenu-9.0.0.jar".to_string()),
-                sha256: String::new(),
-                size: 342156,
-                required: true,
-            },
-            ModInfo {
-                id: "worldmap".to_string(),
-                name: "Xaero's World Map".to_string(),
-                version: "1.37.8".to_string(),
-                file_name: "XaerosWorldMap_1.37.8_Fabric_1.20.4.jar".to_string(),
-                url: Some("https://cdn.modrinth.com/data/NcUtCpym/versions/hy3cqOH4/XaerosWorldMap_1.37.8_Fabric_1.20.4.jar".to_string()),
-                sha256: String::new(),
-                size: 1023456,
-                required: true,
-            },
-            ModInfo {
-                id: "minimap".to_string(),
-                name: "Xaero's Minimap".to_string(),
-                version: "24.0.3".to_string(),
-                file_name: "Xaeros_Minimap_24.0.3_Fabric_1.20.4.jar".to_string(),
-                url: Some("https://cdn.modrinth.com/data/1bokaNcj/versions/xnCFTkHC/Xaeros_Minimap_24.0.3_Fabric_1.20.4.jar".to_string()),
-                sha256: String::new(),
-                size: 876543,
-                required: true,
-            },
         ],
-        resource_pack: None, // Resource pack will be added later
+        resource_pack: None,
     }
 }
 
@@ -255,7 +225,18 @@ pub async fn download_file_with_progress(
         .await
         .map_err(|e| format!("Download failed: {}", e))?;
 
+    // Check HTTP status code BEFORE creating the file
+    if !response.status().is_success() {
+        return Err(format!("Download failed: HTTP {} for {}", response.status(), url));
+    }
+
     let total_size = response.content_length().unwrap_or(0);
+
+    // Don't download empty files
+    if total_size == 0 {
+        return Err(format!("Download failed: Empty file for {}", url));
+    }
+
     let mut downloaded: u64 = 0;
 
     let mut file = fs::File::create(destination)
@@ -280,6 +261,12 @@ pub async fn download_file_with_progress(
         };
 
         window.emit("download-progress", &progress).ok();
+    }
+
+    // Verify downloaded size matches expected
+    if downloaded < total_size {
+        let _ = fs::remove_file(destination); // Remove incomplete file
+        return Err(format!("Download incomplete: got {} bytes, expected {}", downloaded, total_size));
     }
 
     Ok(())

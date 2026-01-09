@@ -645,14 +645,18 @@ fn find_java() -> Result<String, String> {
         let appdata = std::env::var("APPDATA").unwrap_or_default();
         let localappdata = std::env::var("LOCALAPPDATA").unwrap_or_default();
 
-        // Minecraft's bundled Java paths (java-runtime-gamma = Java 17 for MC 1.20+)
+        // Minecraft's bundled Java paths (try all versions - delta=Java21, gamma=Java17, beta=Java17)
         let mc_java_paths = vec![
-            // Standard Minecraft launcher location
+            // java-runtime-delta (Java 21 - newest)
+            format!("{}\\.minecraft\\runtime\\java-runtime-delta\\windows-x64\\java-runtime-delta\\bin\\javaw.exe", appdata),
+            format!("{}\\.minecraft\\runtime\\java-runtime-delta\\windows-x64\\java-runtime-delta\\bin\\java.exe", appdata),
+            // java-runtime-gamma (Java 17)
             format!("{}\\.minecraft\\runtime\\java-runtime-gamma\\windows-x64\\java-runtime-gamma\\bin\\javaw.exe", appdata),
             format!("{}\\.minecraft\\runtime\\java-runtime-gamma\\windows-x64\\java-runtime-gamma\\bin\\java.exe", appdata),
-            // Microsoft Store version
+            // Microsoft Store version - delta
+            format!("{}\\Packages\\Microsoft.4297127D64EC6_8wekyb3d8bbwe\\LocalCache\\Local\\runtime\\java-runtime-delta\\windows-x64\\java-runtime-delta\\bin\\javaw.exe", localappdata),
+            // Microsoft Store version - gamma
             format!("{}\\Packages\\Microsoft.4297127D64EC6_8wekyb3d8bbwe\\LocalCache\\Local\\runtime\\java-runtime-gamma\\windows-x64\\java-runtime-gamma\\bin\\javaw.exe", localappdata),
-            format!("{}\\Packages\\Microsoft.4297127D64EC6_8wekyb3d8bbwe\\LocalCache\\Local\\runtime\\java-runtime-gamma\\windows-x64\\java-runtime-gamma\\bin\\java.exe", localappdata),
             // Older runtime paths
             format!("{}\\.minecraft\\runtime\\java-runtime-beta\\windows-x64\\java-runtime-beta\\bin\\javaw.exe", appdata),
             format!("{}\\.minecraft\\runtime\\jre-legacy\\windows-x64\\jre-legacy\\bin\\javaw.exe", appdata),
