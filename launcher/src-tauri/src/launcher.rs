@@ -6,7 +6,7 @@ use std::process::Command;
 use tauri::Window;
 
 const MINECRAFT_VERSION: &str = "1.20.4";
-const FABRIC_LOADER_VERSION: &str = "0.15.6";
+const FABRIC_LOADER_VERSION: &str = "0.16.9";
 const VERSION_MANIFEST_URL: &str = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";
 const FABRIC_META_URL: &str = "https://meta.fabricmc.net/v2";
 

@@ -4,7 +4,7 @@ use std::fs;
 use tauri::Window;
 
 const MINECRAFT_VERSION: &str = "1.20.4";
-const FABRIC_VERSION: &str = "0.15.6";
+const FABRIC_VERSION: &str = "0.16.9";
 const HEGEMONIA_API: &str = "http://api.hegemonia.net/api";
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
