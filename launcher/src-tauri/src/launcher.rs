@@ -638,35 +638,71 @@ pub async fn launch_game(
 }
 
 fn find_java() -> Result<String, String> {
-    // Try JAVA_HOME first
-    if let Ok(java_home) = std::env::var("JAVA_HOME") {
-        let java_path = PathBuf::from(&java_home).join("bin").join("java");
-        if java_path.exists() {
-            return Ok(java_path.to_string_lossy().to_string());
+    // Helper to check if Java is 64-bit
+    fn is_java_64bit(java_path: &str) -> bool {
+        if let Ok(output) = Command::new(java_path).arg("-version").output() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            // 64-bit Java shows "64-Bit" in version output
+            stderr.contains("64-Bit") || stderr.contains("64-bit")
+        } else {
+            false
         }
     }
 
-    // Try java in PATH
-    if Command::new("java").arg("-version").output().is_ok() {
-        return Ok("java".to_string());
-    }
-
-    // Windows: try common locations
+    // Windows: try common 64-bit locations first
     #[cfg(target_os = "windows")]
     {
-        let paths = vec![
-            "C:\\Program Files\\Java\\jdk-17\\bin\\java.exe",
+        let paths_64bit = vec![
+            "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.13.11-hotspot\\bin\\java.exe",
+            "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.12.7-hotspot\\bin\\java.exe",
+            "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.11.9-hotspot\\bin\\java.exe",
             "C:\\Program Files\\Eclipse Adoptium\\jdk-17\\bin\\java.exe",
+            "C:\\Program Files\\Java\\jdk-17\\bin\\java.exe",
+            "C:\\Program Files\\Microsoft\\jdk-17.0.13.11-hotspot\\bin\\java.exe",
             "C:\\Program Files\\Microsoft\\jdk-17\\bin\\java.exe",
+            "C:\\Program Files\\Java\\jre-17\\bin\\java.exe",
+            "C:\\Program Files\\Zulu\\zulu-17\\bin\\java.exe",
         ];
-        for p in paths {
+        for p in &paths_64bit {
             if PathBuf::from(p).exists() {
                 return Ok(p.to_string());
             }
         }
     }
 
-    Err("Java non trouvé. Installez Java 17 ou plus récent.".to_string())
+    // Try JAVA_HOME
+    if let Ok(java_home) = std::env::var("JAVA_HOME") {
+        let java_path = PathBuf::from(&java_home).join("bin").join("java");
+        if java_path.exists() {
+            let path_str = java_path.to_string_lossy().to_string();
+            if is_java_64bit(&path_str) {
+                return Ok(path_str);
+            }
+        }
+    }
+
+    // Try java in PATH but verify it's 64-bit
+    if let Ok(output) = Command::new("java").arg("-version").output() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        if stderr.contains("64-Bit") || stderr.contains("64-bit") {
+            return Ok("java".to_string());
+        } else if stderr.contains("32-Bit") || stderr.contains("32-bit") {
+            return Err(
+                "Java 32-bit détecté ! Minecraft 1.20.4 nécessite Java 64-bit.\n\n\
+                Téléchargez Java 17 64-bit sur:\nhttps://adoptium.net/temurin/releases/?version=17&os=windows&arch=x64".to_string()
+            );
+        }
+    }
+
+    // Linux/macOS: try java in PATH
+    #[cfg(not(target_os = "windows"))]
+    {
+        if Command::new("java").arg("-version").output().is_ok() {
+            return Ok("java".to_string());
+        }
+    }
+
+    Err("Java non trouvé. Installez Java 17 64-bit:\nhttps://adoptium.net/temurin/releases/?version=17".to_string())
 }
 
 /// Check if game files are ready
