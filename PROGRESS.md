@@ -21,7 +21,7 @@
 ```
 Phase 0  : ████████████████████ 100%  ✅ TERMINÉ
 Phase 1  : ████████████░░░░░░░░ 60%  🟢 EN COURS
-Phase 2  : ░░░░░░░░░░░░░░░░░░░░  0%  ⚪ À FAIRE
+Phase 2  : █████████████████░░░ 85%  🟢 EN COURS
 Phase 3  : ░░░░░░░░░░░░░░░░░░░░  0%  ⚪ À FAIRE
 Phase 4  : ██████████████░░░░░░ 70%  🟢 EN COURS
 Phase 5  : ████████████████░░░░ 80%  🟢 EN COURS
@@ -41,7 +41,7 @@ Phase 18 : ░░░░░░░░░░░░░░░░░░░░  0%  ⚪
 Phase 19 : ░░░░░░░░░░░░░░░░░░░░  0%  ⚪ À FAIRE
 Phase 20 : ░░░░░░░░░░░░░░░░░░░░  0%  ⚪ À FAIRE
 
-TOTAL    : ████░░░░░░░░░░░░░░░░ 16%
+TOTAL    : █████░░░░░░░░░░░░░░░ 20%
 ```
 
 ---
@@ -146,25 +146,29 @@ TOTAL    : ████░░░░░░░░░░░░░░░░ 16%
 
 ---
 
-### ⚪ PHASE 2 : LAUNCHER CUSTOM (0%)
+### 🟢 PHASE 2 : LAUNCHER CUSTOM (85%)
 
 **Objectif:** Développer un launcher personnalisé pour automatiser l'installation
 
 | Tâche | Statut | Priorité | Notes |
 |-------|--------|----------|-------|
-| Setup projet Tauri | ⚪ | 🔴 CRITIQUE | Rust + React |
-| Design UI launcher | ⚪ | 🟠 HAUTE | Maquettes |
-| Auth Microsoft/Mojang | ⚪ | 🔴 CRITIQUE | OAuth flow |
-| Système téléchargement mods | ⚪ | 🔴 CRITIQUE | Auto-sync |
-| Auto-updater | ⚪ | 🟠 HAUTE | Launcher + mods |
-| Vérification intégrité | ⚪ | 🟠 HAUTE | Hash checking |
-| Gestion RAM allocation | ⚪ | 🟡 MOYENNE | Auto-détection |
+| Setup projet Tauri | ✅ | 🔴 CRITIQUE | Rust + React + TypeScript |
+| Design UI launcher | ✅ | 🟠 HAUTE | Interface moderne Tailwind |
+| Auth Hegemonia (crack) | ✅ | 🔴 CRITIQUE | Système propre, offline mode |
+| Système téléchargement mods | ✅ | 🔴 CRITIQUE | Auto-sync depuis API |
+| Auto-updater | ✅ | 🟠 HAUTE | Tauri updater configuré |
+| Téléchargement Minecraft | ✅ | 🔴 CRITIQUE | Mojang API direct |
+| Téléchargement Fabric | ✅ | 🔴 CRITIQUE | Fabric Meta API |
+| Extraction natives | ✅ | 🟠 HAUTE | ZIP extraction |
+| Gestion RAM allocation | ✅ | 🟡 MOYENNE | Configurable |
 | Discord Rich Presence | ⚪ | 🟢 BASSE | Intégration |
-| Build Windows | ⚪ | 🟠 HAUTE | .exe |
-| Build Linux | ⚪ | 🟡 MOYENNE | .AppImage |
+| Build Windows | 🟢 | 🟠 HAUTE | GitHub Actions |
+| Build Linux | ✅ | 🟡 MOYENNE | .deb, .rpm, .AppImage |
 | Build macOS | ⚪ | 🟢 BASSE | .dmg |
 
-**Durée estimée Phase 2:** 5-7 jours
+**Version actuelle:** 1.1.0 (Standalone - Sans launcher officiel)
+
+**Durée estimée Phase 2:** 5-7 jours (85% complété)
 
 ---
 
@@ -651,6 +655,58 @@ LANCEMENT PRÉVU : Juillet 2026
 
 ## 🔄 HISTORIQUE DES CHANGEMENTS
 
+### 2026-01-08 (Session 8) - LAUNCHER STANDALONE v1.1.0
+
+- 🎮 **LAUNCHER STANDALONE COMPLET - SANS LAUNCHER OFFICIEL**
+- ✅ **Objectif:** Launcher autonome comme Badlion/Lunar (pas besoin du launcher Mojang)
+- ✅ **Support crack/offline** avec système d'auth Hegemonia
+
+**Nouvelle architecture launcher.rs (600+ lignes):**
+- ✅ Télécharge Minecraft directement depuis Mojang API
+- ✅ Télécharge toutes les libraries depuis Maven
+- ✅ Extrait les natives des JARs
+- ✅ Télécharge tous les assets (textures, sons)
+- ✅ Télécharge Fabric Loader et ses libraries
+- ✅ Construit le classpath complet
+- ✅ Lance Java directement (pas besoin de launcher officiel)
+
+**Fix Fabric API parsing:**
+- ❌ Erreur: "missing field `loader` at line 1 column 2847"
+- ✅ Cause: Structure Rust incorrecte pour l'API Fabric
+- ✅ Fix: Changé `FabricLoaderVersion` → `FabricProfile`
+- ✅ Fix: Utilise `fabric_profile.main_class` au lieu de `fabric_meta.launcher_meta.main_class.client`
+
+**Structures corrigées:**
+```rust
+struct FabricProfile {
+    id: String,
+    main_class: String,  // Renommé depuis mainClass
+    libraries: Vec<FabricLibrary>,
+}
+struct FabricLibrary {
+    name: String,
+    url: Option<String>,
+}
+```
+
+**Build Linux réussi:**
+- ✅ hegemonia-launcher_1.1.0_amd64.deb
+- ✅ hegemonia-launcher-1.1.0-1.x86_64.rpm
+- ✅ hegemonia-launcher_1.1.0_amd64.AppImage
+
+**Installation sur VPS:**
+- ✅ Rust installé (rustc 1.92.0)
+- ✅ Dépendances Tauri installées (libwebkit2gtk, libgtk-3, etc.)
+- ✅ Icons convertis en RGBA
+
+**Commits:**
+- cdef4cc: [FIX] Fix Fabric API parsing - use fabric_main_class variable
+- 9507f07: [BUILD] Convert icons to RGBA format for Tauri build
+
+**Prochaine étape:** Tester le launcher sur Windows (build via GitHub Actions)
+
+---
+
 ### 2026-01-07 (Session 7) - LAUNCHER PROFESSIONNEL ULTRA MODERNE
 
 - 🎮 **LAUNCHER TAURI COMPLET - ULTRA PROFESSIONNEL**
@@ -946,4 +1002,4 @@ Commandes : Voir `./start-test-server.sh`
 
 **Document mis à jour automatiquement - Consulter régulièrement**
 
-*Dernière mise à jour: 2026-01-07 (Session 2)*
+*Dernière mise à jour: 2026-01-08 (Session 8)*
