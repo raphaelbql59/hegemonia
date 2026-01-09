@@ -564,19 +564,74 @@ pub async fn launch_game(
     // Find Java
     let java_cmd = find_java()?;
 
+    // Log the full command for debugging
+    let full_cmd = format!("\"{}\" {}", java_cmd, args.iter().map(|a| {
+        if a.contains(' ') || a.contains(';') { format!("\"{}\"", a) } else { a.clone() }
+    }).collect::<Vec<_>>().join(" "));
+    let _ = fs::write(&log_path, format!("{}Full command:\n{}\n\n", log_content, full_cmd));
+
+    // Launch with stderr capture to detect early crashes
+    use std::process::Stdio;
+
     match Command::new(&java_cmd)
         .args(&args)
         .current_dir(&game_dir)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
         .spawn()
     {
-        Ok(child) => {
-            emit_progress(&window, "done", "Minecraft lancé !", 100, 100);
-            let _ = fs::write(&log_path, format!("{}PID: {:?}\n", log_content, child.id()));
-            Ok(format!("Minecraft lancé ! (PID: {:?})", child.id()))
+        Ok(mut child) => {
+            let pid = child.id();
+            let _ = fs::write(&log_path, format!("{}Full command:\n{}\n\nPID: {}\n", log_content, full_cmd, pid));
+
+            // Wait a short time to check if process crashes immediately
+            std::thread::sleep(std::time::Duration::from_millis(2000));
+
+            // Check if process is still running
+            match child.try_wait() {
+                Ok(Some(status)) => {
+                    // Process exited - capture output
+                    let mut error_log = format!("{}Full command:\n{}\n\nPID: {}\nProcess exited with: {}\n",
+                        log_content, full_cmd, pid, status);
+
+                    if let Some(mut stderr) = child.stderr.take() {
+                        use std::io::Read;
+                        let mut err_output = String::new();
+                        let _ = stderr.read_to_string(&mut err_output);
+                        if !err_output.is_empty() {
+                            error_log.push_str(&format!("\nSTDERR:\n{}\n", err_output));
+                        }
+                    }
+
+                    if let Some(mut stdout) = child.stdout.take() {
+                        use std::io::Read;
+                        let mut out_output = String::new();
+                        let _ = stdout.read_to_string(&mut out_output);
+                        if !out_output.is_empty() {
+                            error_log.push_str(&format!("\nSTDOUT:\n{}\n", out_output));
+                        }
+                    }
+
+                    let _ = fs::write(&log_path, &error_log);
+
+                    emit_progress(&window, "error", "Le jeu a crashé au démarrage", 100, 100);
+                    Err(format!("Minecraft a crashé. Consultez le fichier launch.log pour plus de détails."))
+                }
+                Ok(None) => {
+                    // Process still running - success!
+                    emit_progress(&window, "done", "Minecraft lancé !", 100, 100);
+                    Ok(format!("Minecraft lancé ! (PID: {})", pid))
+                }
+                Err(e) => {
+                    let err = format!("Erreur lors de la vérification du processus: {}", e);
+                    let _ = fs::write(&log_path, format!("{}Full command:\n{}\n\nERROR: {}\n", log_content, full_cmd, err));
+                    Err(err)
+                }
+            }
         }
         Err(e) => {
             let err = format!("Erreur de lancement: {}", e);
-            let _ = fs::write(&log_path, format!("{}ERROR: {}\n", log_content, err));
+            let _ = fs::write(&log_path, format!("{}Full command:\n{}\n\nERROR: {}\n", log_content, full_cmd, err));
             Err(err)
         }
     }
