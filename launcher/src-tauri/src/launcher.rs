@@ -638,32 +638,70 @@ pub async fn launch_game(
 }
 
 fn find_java() -> Result<String, String> {
-    // Helper to check if Java is 64-bit
-    fn is_java_64bit(java_path: &str) -> bool {
-        if let Ok(output) = Command::new(java_path).arg("-version").output() {
-            let stderr = String::from_utf8_lossy(&output.stderr);
-            // 64-bit Java shows "64-Bit" in version output
-            stderr.contains("64-Bit") || stderr.contains("64-bit")
-        } else {
-            false
-        }
-    }
-
-    // Windows: try common 64-bit locations first
+    // Windows: First try to use Minecraft's bundled Java runtime (java-runtime-gamma for 1.20.4)
     #[cfg(target_os = "windows")]
     {
+        // Get environment variables
+        let appdata = std::env::var("APPDATA").unwrap_or_default();
+        let localappdata = std::env::var("LOCALAPPDATA").unwrap_or_default();
+
+        // Minecraft's bundled Java paths (java-runtime-gamma = Java 17 for MC 1.20+)
+        let mc_java_paths = vec![
+            // Standard Minecraft launcher location
+            format!("{}\\.minecraft\\runtime\\java-runtime-gamma\\windows-x64\\java-runtime-gamma\\bin\\javaw.exe", appdata),
+            format!("{}\\.minecraft\\runtime\\java-runtime-gamma\\windows-x64\\java-runtime-gamma\\bin\\java.exe", appdata),
+            // Microsoft Store version
+            format!("{}\\Packages\\Microsoft.4297127D64EC6_8wekyb3d8bbwe\\LocalCache\\Local\\runtime\\java-runtime-gamma\\windows-x64\\java-runtime-gamma\\bin\\javaw.exe", localappdata),
+            format!("{}\\Packages\\Microsoft.4297127D64EC6_8wekyb3d8bbwe\\LocalCache\\Local\\runtime\\java-runtime-gamma\\windows-x64\\java-runtime-gamma\\bin\\java.exe", localappdata),
+            // Older runtime paths
+            format!("{}\\.minecraft\\runtime\\java-runtime-beta\\windows-x64\\java-runtime-beta\\bin\\javaw.exe", appdata),
+            format!("{}\\.minecraft\\runtime\\jre-legacy\\windows-x64\\jre-legacy\\bin\\javaw.exe", appdata),
+        ];
+
+        for p in &mc_java_paths {
+            if PathBuf::from(p).exists() {
+                return Ok(p.to_string());
+            }
+        }
+
+        // Then try common 64-bit installation paths
         let paths_64bit = vec![
             "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.13.11-hotspot\\bin\\java.exe",
-            "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.12.7-hotspot\\bin\\java.exe",
-            "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.11.9-hotspot\\bin\\java.exe",
             "C:\\Program Files\\Eclipse Adoptium\\jdk-17\\bin\\java.exe",
             "C:\\Program Files\\Java\\jdk-17\\bin\\java.exe",
-            "C:\\Program Files\\Microsoft\\jdk-17.0.13.11-hotspot\\bin\\java.exe",
             "C:\\Program Files\\Microsoft\\jdk-17\\bin\\java.exe",
-            "C:\\Program Files\\Java\\jre-17\\bin\\java.exe",
             "C:\\Program Files\\Zulu\\zulu-17\\bin\\java.exe",
         ];
         for p in &paths_64bit {
+            if PathBuf::from(p).exists() {
+                return Ok(p.to_string());
+            }
+        }
+    }
+
+    // macOS: try Minecraft's bundled Java
+    #[cfg(target_os = "macos")]
+    {
+        let home = std::env::var("HOME").unwrap_or_default();
+        let mc_java_paths = vec![
+            format!("{}/Library/Application Support/minecraft/runtime/java-runtime-gamma/mac-os/java-runtime-gamma/jre.bundle/Contents/Home/bin/java", home),
+            format!("{}/Library/Application Support/minecraft/runtime/java-runtime-gamma/mac-os-arm64/java-runtime-gamma/jre.bundle/Contents/Home/bin/java", home),
+        ];
+        for p in &mc_java_paths {
+            if PathBuf::from(p).exists() {
+                return Ok(p.to_string());
+            }
+        }
+    }
+
+    // Linux: try Minecraft's bundled Java
+    #[cfg(target_os = "linux")]
+    {
+        let home = std::env::var("HOME").unwrap_or_default();
+        let mc_java_paths = vec![
+            format!("{}/.minecraft/runtime/java-runtime-gamma/linux/java-runtime-gamma/bin/java", home),
+        ];
+        for p in &mc_java_paths {
             if PathBuf::from(p).exists() {
                 return Ok(p.to_string());
             }
@@ -674,35 +712,16 @@ fn find_java() -> Result<String, String> {
     if let Ok(java_home) = std::env::var("JAVA_HOME") {
         let java_path = PathBuf::from(&java_home).join("bin").join("java");
         if java_path.exists() {
-            let path_str = java_path.to_string_lossy().to_string();
-            if is_java_64bit(&path_str) {
-                return Ok(path_str);
-            }
+            return Ok(java_path.to_string_lossy().to_string());
         }
     }
 
-    // Try java in PATH but verify it's 64-bit
-    if let Ok(output) = Command::new("java").arg("-version").output() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        if stderr.contains("64-Bit") || stderr.contains("64-bit") {
-            return Ok("java".to_string());
-        } else if stderr.contains("32-Bit") || stderr.contains("32-bit") {
-            return Err(
-                "Java 32-bit détecté ! Minecraft 1.20.4 nécessite Java 64-bit.\n\n\
-                Téléchargez Java 17 64-bit sur:\nhttps://adoptium.net/temurin/releases/?version=17&os=windows&arch=x64".to_string()
-            );
-        }
+    // Try java in PATH
+    if Command::new("java").arg("-version").output().is_ok() {
+        return Ok("java".to_string());
     }
 
-    // Linux/macOS: try java in PATH
-    #[cfg(not(target_os = "windows"))]
-    {
-        if Command::new("java").arg("-version").output().is_ok() {
-            return Ok("java".to_string());
-        }
-    }
-
-    Err("Java non trouvé. Installez Java 17 64-bit:\nhttps://adoptium.net/temurin/releases/?version=17".to_string())
+    Err("Java non trouvé. Lancez Minecraft au moins une fois via le launcher officiel pour installer Java.".to_string())
 }
 
 /// Check if game files are ready
