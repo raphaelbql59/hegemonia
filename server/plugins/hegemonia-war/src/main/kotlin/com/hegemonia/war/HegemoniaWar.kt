@@ -1,9 +1,11 @@
 package com.hegemonia.war
 
 import com.hegemonia.core.HegemoniaCore
+import com.hegemonia.war.bridge.NationBridge
 import com.hegemonia.war.command.BattleCommand
 import com.hegemonia.war.command.WarCommand
 import com.hegemonia.war.dao.WarTables
+import com.hegemonia.war.gui.WarMenuManager
 import com.hegemonia.war.listener.BattleListener
 import com.hegemonia.war.listener.WarListener
 import com.hegemonia.war.service.BattleService
@@ -22,6 +24,10 @@ class HegemoniaWar : JavaPlugin() {
     lateinit var battleService: BattleService
         private set
     lateinit var siegeService: SiegeService
+        private set
+    lateinit var nationBridge: NationBridge
+        private set
+    lateinit var menuManager: WarMenuManager
         private set
 
     override fun onEnable() {
@@ -43,6 +49,14 @@ class HegemoniaWar : JavaPlugin() {
         warService = WarService(core.database)
         battleService = BattleService(core.database, warService)
         siegeService = SiegeService(core.database, battleService)
+
+        // Initialiser le bridge vers HegemoniaNations
+        nationBridge = NationBridge.getInstance()
+        nationBridge.initialize()
+
+        // Initialiser le gestionnaire de menus GUI
+        menuManager = WarMenuManager(this)
+        logger.info("Système de menus GUI initialisé")
 
         // Enregistrer les commandes
         registerCommands()

@@ -1,51 +1,77 @@
 name: HegemoniaEconomy
 version: '${version}'
 main: com.hegemonia.economy.HegemoniaEconomy
-api-version: '1.20'
+api-version: '1.21'
 author: Hegemonia Team
-description: Economy system for Hegemonia - Markets, trading and enterprises
-website: https://hegemonia.com
+description: Système économique pour Hegemonia - Marchés, commerce et entreprises
+website: https://hegemonia.fr
 
 depend:
   - HegemoniaCore
-  - HegemoniaNations
 
 softdepend:
+  - HegemoniaNations
   - Vault
 
 commands:
-  economy:
-    description: Main economy command
-    aliases: [eco, money, argent]
+  money:
+    description: Commandes économiques principales
+    aliases: [eco, economy, argent]
+    usage: /<command> [action]
+
+  bank:
+    description: Gestion bancaire
+    aliases: [banque]
     usage: /<command> [action]
 
   market:
-    description: Market commands
-    aliases: [marché, bourse]
+    description: Accès au marché
+    aliases: [marche, marché, shop, boutique]
     usage: /<command> [action]
-
-  enterprise:
-    description: Enterprise commands
-    aliases: [entreprise, company]
-    usage: /<command> [action]
-
-  pay:
-    description: Pay another player
-    aliases: [payer]
-    usage: /<command> <player> <amount>
-
-  balance:
-    description: Check your balance
-    aliases: [bal, solde]
-    usage: /<command>
 
 permissions:
+  hegemonia.economy.user:
+    description: Permissions de base économie
+    default: true
+    children:
+      hegemonia.economy.balance: true
+      hegemonia.economy.pay: true
+      hegemonia.economy.bank: true
+      hegemonia.economy.market: true
+
+  hegemonia.economy.balance:
+    description: Voir son solde
+    default: true
+
+  hegemonia.economy.pay:
+    description: Payer d'autres joueurs
+    default: true
+
+  hegemonia.economy.bank:
+    description: Utiliser la banque
+    default: true
+
+  hegemonia.economy.market:
+    description: Utiliser le marché
+    default: true
+
   hegemonia.economy.admin:
-    description: Full economy administrative access
+    description: Permissions administrateur économie
     default: op
-  hegemonia.economy.trade:
-    description: Use the market
-    default: true
-  hegemonia.economy.enterprise:
-    description: Create an enterprise
-    default: true
+    children:
+      hegemonia.economy.user: true
+      hegemonia.economy.give: true
+      hegemonia.economy.take: true
+      hegemonia.economy.set: true
+
+  hegemonia.economy.give:
+    description: Donner de l'argent
+    default: op
+
+  hegemonia.economy.take:
+    description: Retirer de l'argent
+    default: op
+
+  hegemonia.economy.set:
+    description: Définir le solde d'un joueur
+    default: op

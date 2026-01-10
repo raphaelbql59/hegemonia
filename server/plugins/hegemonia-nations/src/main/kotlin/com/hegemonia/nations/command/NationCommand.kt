@@ -18,18 +18,22 @@ import org.bukkit.entity.Player
  */
 class NationCommand(private val plugin: HegemoniaNations) : CommandExecutor, TabCompleter {
 
+    private val menuManager by lazy { plugin.menuManager }
+
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
         if (sender !is Player) {
             sender.sendError("Cette commande est réservée aux joueurs.")
             return true
         }
 
+        // Sans argument -> ouvrir le menu GUI
         if (args.isEmpty()) {
-            showHelp(sender)
+            menuManager.openMainMenu(sender)
             return true
         }
 
         when (args[0].lowercase()) {
+            "menu", "gui" -> menuManager.openMainMenu(sender)
             "help", "?" -> showHelp(sender)
             "create", "créer" -> createNation(sender, args)
             "info", "i" -> showInfo(sender, args)

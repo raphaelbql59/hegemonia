@@ -313,6 +313,49 @@ class WarService(private val db: DatabaseManager) {
     }
 
     /**
+     * Récupère toutes les guerres actives
+     */
+    fun getActiveWars(): List<War> {
+        return db.transaction {
+            Wars.select {
+                Wars.status inList listOf(WarStatus.DECLARED, WarStatus.ACTIVE, WarStatus.NEGOTIATING)
+            }.map { it.toWar() }
+        }
+    }
+
+    /**
+     * Récupère les guerres d'une nation (actives et terminées)
+     */
+    fun getNationWars(nationId: Int): List<War> {
+        return db.transaction {
+            Wars.select {
+                ((Wars.attackerId eq nationId) or (Wars.defenderId eq nationId)) and
+                        (Wars.status inList listOf(WarStatus.DECLARED, WarStatus.ACTIVE, WarStatus.NEGOTIATING))
+            }.map { it.toWar() }
+        }
+    }
+
+    /**
+     * Refuse la proposition de paix et reprend la guerre
+     */
+    fun rejectPeace(warId: Int): Boolean {
+        val war = getWar(warId) ?: return false
+        if (war.status != WarStatus.NEGOTIATING) return false
+
+        return db.transaction {
+            Wars.update({ Wars.id eq warId }) {
+                it[status] = WarStatus.ACTIVE
+                it[peaceTerms] = null
+            }
+
+            logWarEvent(warId, WarEventType.PEACE_REJECTED, null,
+                "Proposition de paix refusée", 0)
+
+            true
+        }.also { invalidateCache(warId) }
+    }
+
+    /**
      * Vérifie si deux nations sont en guerre
      */
     fun areAtWar(nationId1: Int, nationId2: Int): Boolean {

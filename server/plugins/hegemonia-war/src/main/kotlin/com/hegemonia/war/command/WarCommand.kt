@@ -17,14 +17,22 @@ import org.bukkit.entity.Player
 class WarCommand(private val plugin: HegemoniaWar) : CommandExecutor, TabCompleter {
 
     private val warService = plugin.warService
+    private val nationBridge by lazy { plugin.nationBridge }
+    private val menuManager by lazy { plugin.menuManager }
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
+        // Sans argument -> ouvrir le menu GUI (plus intuitif)
         if (args.isEmpty()) {
-            sendHelp(sender)
+            if (sender is Player) {
+                menuManager.openMainMenu(sender)
+            } else {
+                sendHelp(sender)
+            }
             return true
         }
 
         when (args[0].lowercase()) {
+            "menu", "gui" -> handleMenu(sender)
             "declare", "déclarer" -> handleDeclare(sender, args)
             "info" -> handleInfo(sender, args)
             "list", "liste" -> handleList(sender, args)
@@ -51,6 +59,11 @@ class WarCommand(private val plugin: HegemoniaWar) : CommandExecutor, TabComplet
             return
         }
 
+        if (!nationBridge.isAvailable()) {
+            sender.error("Le système de nations n'est pas disponible.")
+            return
+        }
+
         if (args.size < 3) {
             sender.error("Usage: /war declare <nation> <objectif> [raison]")
             sender.info("Objectifs: ${WarGoal.entries.joinToString(", ") { it.name.lowercase() }}")
@@ -68,34 +81,72 @@ class WarCommand(private val plugin: HegemoniaWar) : CommandExecutor, TabComplet
             return
         }
 
-        // TODO: Récupérer les IDs des nations via NationService
-        sender.warning("Système en cours d'implémentation - connexion avec hegemonia-nations requise")
-
-        /*
-        val attackerNation = nationService.getPlayerNation(sender.uniqueId)
-        if (attackerNation == null) {
+        // Récupérer la nation de l'attaquant
+        val attackerNationId = nationBridge.getPlayerNationId(sender.uniqueId)
+        if (attackerNationId == null) {
             sender.error("Vous devez appartenir à une nation pour déclarer la guerre.")
             return
         }
 
-        val defenderNation = nationService.getNationByName(targetNationName)
-        if (defenderNation == null) {
-            sender.error("Nation introuvable: $targetNationName")
+        // Vérifier les permissions
+        if (!nationBridge.canDeclareWar(sender.uniqueId)) {
+            sender.error("Vous n'avez pas les permissions pour déclarer la guerre.")
+            sender.info("Seuls les Leaders, Ministres et Généraux peuvent déclarer la guerre.")
             return
         }
 
-        val result = warService.declareWar(attackerNation.id, defenderNation.id, goal, reason)
+        // Récupérer la nation cible (par nom ou tag)
+        var defenderNationId = nationBridge.getNationIdByName(targetNationName)
+        if (defenderNationId == null) {
+            defenderNationId = nationBridge.getNationIdByTag(targetNationName.uppercase())
+        }
+        if (defenderNationId == null) {
+            sender.error("Nation introuvable: $targetNationName")
+            sender.info("Essayez avec le nom complet ou le tag de la nation.")
+            return
+        }
+
+        // Vérifications
+        if (attackerNationId == defenderNationId) {
+            sender.error("Vous ne pouvez pas déclarer la guerre à votre propre nation.")
+            return
+        }
+
+        if (nationBridge.areNationsAllied(attackerNationId, defenderNationId)) {
+            sender.error("Vous ne pouvez pas déclarer la guerre à une nation alliée.")
+            sender.info("Rompez d'abord l'alliance avant de déclarer la guerre.")
+            return
+        }
+
+        if (nationBridge.areNationsAtWar(attackerNationId, defenderNationId)) {
+            sender.error("Vos nations sont déjà en guerre.")
+            return
+        }
+
+        // Déclarer la guerre
+        val result = warService.declareWar(attackerNationId, defenderNationId, goal, reason)
         result.fold(
             onSuccess = { war ->
-                sender.success("Guerre déclarée contre ${defenderNation.name}!")
+                val defenderName = nationBridge.getNationName(defenderNationId) ?: "Nation #$defenderNationId"
+                sender.success("Guerre déclarée contre $defenderName!")
+                sender.info("ID de guerre: #${war.id}")
                 sender.info("Objectif: ${goal.displayName}")
                 sender.info("La guerre commencera dans 24 heures.")
+
+                // Notifier les membres de la nation ennemie
+                nationBridge.getNationMembers(defenderNationId).forEach { memberId ->
+                    memberId.player?.let { player ->
+                        val attackerName = nationBridge.getNationName(attackerNationId) ?: "Nation #$attackerNationId"
+                        player.warning("$attackerName vous a déclaré la guerre!")
+                        player.info("Objectif ennemi: ${goal.displayName}")
+                        player.info("Raison: $reason")
+                    }
+                }
             },
             onFailure = { error ->
                 sender.error("Échec de la déclaration: ${error.message}")
             }
         )
-        */
     }
 
     private fun handleInfo(sender: CommandSender, args: Array<out String>) {
@@ -116,11 +167,14 @@ class WarCommand(private val plugin: HegemoniaWar) : CommandExecutor, TabComplet
             return
         }
 
+        val attackerName = nationBridge.getNationName(war.attackerId) ?: "Nation #${war.attackerId}"
+        val defenderName = nationBridge.getNationName(war.defenderId) ?: "Nation #${war.defenderId}"
+
         sender.info("═══════ Guerre #${war.id} ═══════")
         sender.info("Statut: ${war.status.color}${war.status.displayName}")
         sender.info("Objectif: ${war.warGoal.displayName}")
-        sender.info("Attaquant: Nation #${war.attackerId} - Score: ${war.attackerScore}")
-        sender.info("Défenseur: Nation #${war.defenderId} - Score: ${war.defenderScore}")
+        sender.info("Attaquant: $attackerName - Score: ${war.attackerScore}")
+        sender.info("Défenseur: $defenderName - Score: ${war.defenderScore}")
         sender.info("Fatigue (Att): ${war.attackerWarWeariness}%")
         sender.info("Fatigue (Déf): ${war.defenderWarWeariness}%")
         sender.info("Raison: ${war.reason}")
@@ -130,9 +184,24 @@ class WarCommand(private val plugin: HegemoniaWar) : CommandExecutor, TabComplet
     }
 
     private fun handleList(sender: CommandSender, args: Array<out String>) {
-        // TODO: Lister les guerres actives
-        sender.info("═══════ Guerres Actives ═══════")
-        sender.info("Fonctionnalité en cours d'implémentation")
+        val activeWars = warService.getActiveWars()
+
+        sender.info("═══════ Guerres Actives (${activeWars.size}) ═══════")
+
+        if (activeWars.isEmpty()) {
+            sender.info("Aucune guerre en cours.")
+            return
+        }
+
+        activeWars.forEach { war ->
+            val attackerName = nationBridge.getNationName(war.attackerId) ?: "[${war.attackerId}]"
+            val defenderName = nationBridge.getNationName(war.defenderId) ?: "[${war.defenderId}]"
+            val attackerTag = nationBridge.getNationTag(war.attackerId) ?: "???"
+            val defenderTag = nationBridge.getNationTag(war.defenderId) ?: "???"
+
+            sender.info("#${war.id}: [$attackerTag] $attackerName vs [$defenderTag] $defenderName")
+            sender.info("    ${war.status.color}${war.status.displayName} | Score: ${war.attackerScore}-${war.defenderScore}")
+        }
     }
 
     private fun handlePeace(sender: CommandSender, args: Array<out String>) {
@@ -152,13 +221,46 @@ class WarCommand(private val plugin: HegemoniaWar) : CommandExecutor, TabComplet
             return
         }
 
+        val war = warService.getWar(warId)
+        if (war == null) {
+            sender.error("Guerre introuvable: #$warId")
+            return
+        }
+
+        // Vérifier que le joueur appartient à une nation participante
+        val playerNationId = nationBridge.getPlayerNationId(sender.uniqueId)
+        if (playerNationId == null) {
+            sender.error("Vous n'appartenez à aucune nation.")
+            return
+        }
+
+        if (playerNationId != war.attackerId && playerNationId != war.defenderId) {
+            sender.error("Votre nation ne participe pas à cette guerre.")
+            return
+        }
+
+        if (!nationBridge.canDeclareWar(sender.uniqueId)) {
+            sender.error("Vous n'avez pas les permissions pour négocier la paix.")
+            return
+        }
+
         val terms = args.drop(2).joinToString(" ")
 
-        // TODO: Vérifier que le joueur appartient à une nation participante
-        val success = warService.proposePeace(warId, 0, terms) // 0 = placeholder
+        val success = warService.proposePeace(warId, playerNationId, terms)
         if (success) {
             sender.success("Proposition de paix envoyée!")
             sender.info("L'ennemi doit maintenant accepter ou refuser.")
+
+            // Notifier l'autre camp
+            val otherNationId = if (playerNationId == war.attackerId) war.defenderId else war.attackerId
+            nationBridge.getNationMembers(otherNationId).forEach { memberId ->
+                memberId.player?.let { player ->
+                    val proposerName = nationBridge.getNationName(playerNationId) ?: "Nation #$playerNationId"
+                    player.info("$proposerName propose la paix!")
+                    player.info("Termes: $terms")
+                    player.info("Utilisez /war accept $warId ou /war reject $warId")
+                }
+            }
         } else {
             sender.error("Impossible de proposer la paix pour cette guerre.")
         }
@@ -181,10 +283,43 @@ class WarCommand(private val plugin: HegemoniaWar) : CommandExecutor, TabComplet
             return
         }
 
-        // TODO: Vérifier que le joueur peut accepter
+        val war = warService.getWar(warId)
+        if (war == null) {
+            sender.error("Guerre introuvable: #$warId")
+            return
+        }
+
+        // Vérifier les permissions
+        val playerNationId = nationBridge.getPlayerNationId(sender.uniqueId)
+        if (playerNationId == null || (playerNationId != war.attackerId && playerNationId != war.defenderId)) {
+            sender.error("Votre nation ne participe pas à cette guerre.")
+            return
+        }
+
+        if (!nationBridge.canDeclareWar(sender.uniqueId)) {
+            sender.error("Vous n'avez pas les permissions pour accepter la paix.")
+            return
+        }
+
+        if (war.status != WarStatus.NEGOTIATING) {
+            sender.error("Aucune proposition de paix n'est en cours.")
+            return
+        }
+
         val success = warService.acceptPeace(warId)
         if (success) {
             sender.success("Paix acceptée! La guerre est terminée.")
+
+            // Notifier toutes les nations participantes
+            listOf(war.attackerId, war.defenderId).forEach { nationId ->
+                nationBridge.getNationMembers(nationId).forEach { memberId ->
+                    memberId.player?.let { player ->
+                        if (player != sender) {
+                            player.success("La paix a été signée! La guerre #$warId est terminée.")
+                        }
+                    }
+                }
+            }
         } else {
             sender.error("Impossible d'accepter la paix pour cette guerre.")
         }
@@ -207,8 +342,44 @@ class WarCommand(private val plugin: HegemoniaWar) : CommandExecutor, TabComplet
             return
         }
 
-        // TODO: Implémenter le rejet de paix
-        sender.warning("Le rejet de paix n'est pas encore implémenté.")
+        val war = warService.getWar(warId)
+        if (war == null) {
+            sender.error("Guerre introuvable: #$warId")
+            return
+        }
+
+        // Vérifier les permissions
+        val playerNationId = nationBridge.getPlayerNationId(sender.uniqueId)
+        if (playerNationId == null || (playerNationId != war.attackerId && playerNationId != war.defenderId)) {
+            sender.error("Votre nation ne participe pas à cette guerre.")
+            return
+        }
+
+        if (!nationBridge.canDeclareWar(sender.uniqueId)) {
+            sender.error("Vous n'avez pas les permissions pour refuser la paix.")
+            return
+        }
+
+        if (war.status != WarStatus.NEGOTIATING) {
+            sender.error("Aucune proposition de paix n'est en cours.")
+            return
+        }
+
+        val success = warService.rejectPeace(warId)
+        if (success) {
+            sender.warning("Proposition de paix refusée. La guerre continue!")
+
+            // Notifier l'autre camp
+            val otherNationId = if (playerNationId == war.attackerId) war.defenderId else war.attackerId
+            nationBridge.getNationMembers(otherNationId).forEach { memberId ->
+                memberId.player?.let { player ->
+                    val rejecterName = nationBridge.getNationName(playerNationId) ?: "Nation #$playerNationId"
+                    player.warning("$rejecterName a refusé votre proposition de paix!")
+                }
+            }
+        } else {
+            sender.error("Impossible de refuser la paix.")
+        }
     }
 
     private fun handleSurrender(sender: CommandSender, args: Array<out String>) {
@@ -229,16 +400,54 @@ class WarCommand(private val plugin: HegemoniaWar) : CommandExecutor, TabComplet
             return
         }
 
-        // TODO: Vérifier les permissions et la nation
-        sender.warning("Confirmation requise: /war surrender $warId confirm")
+        val war = warService.getWar(warId)
+        if (war == null) {
+            sender.error("Guerre introuvable: #$warId")
+            return
+        }
 
-        if (args.size > 2 && args[2].equals("confirm", ignoreCase = true)) {
-            val success = warService.surrender(warId, 0) // 0 = placeholder
-            if (success) {
-                sender.error("Votre nation a capitulé...")
-            } else {
-                sender.error("Impossible de capituler pour cette guerre.")
+        // Vérifier les permissions
+        val playerNationId = nationBridge.getPlayerNationId(sender.uniqueId)
+        if (playerNationId == null || (playerNationId != war.attackerId && playerNationId != war.defenderId)) {
+            sender.error("Votre nation ne participe pas à cette guerre.")
+            return
+        }
+
+        if (!nationBridge.isNationLeader(sender.uniqueId)) {
+            sender.error("Seul le leader de la nation peut capituler.")
+            return
+        }
+
+        // Demander confirmation
+        if (args.size < 3 || !args[2].equals("confirm", ignoreCase = true)) {
+            sender.warning("═══════ CAPITULATION ═══════")
+            sender.warning("Cette action est IRRÉVERSIBLE!")
+            sender.warning("Votre nation subira les conséquences de la défaite.")
+            sender.info("Pour confirmer: /war surrender $warId confirm")
+            return
+        }
+
+        val success = warService.surrender(warId, playerNationId)
+        if (success) {
+            val nationName = nationBridge.getNationName(playerNationId) ?: "Nation #$playerNationId"
+            sender.error("$nationName a capitulé...")
+
+            // Notifier tout le monde
+            listOf(war.attackerId, war.defenderId).forEach { nationId ->
+                nationBridge.getNationMembers(nationId).forEach { memberId ->
+                    memberId.player?.let { player ->
+                        if (player != sender) {
+                            if (nationId == playerNationId) {
+                                player.error("Votre nation a capitulé dans la guerre #$warId...")
+                            } else {
+                                player.success("$nationName a capitulé! Victoire!")
+                            }
+                        }
+                    }
+                }
             }
+        } else {
+            sender.error("Impossible de capituler pour cette guerre.")
         }
     }
 
@@ -259,6 +468,12 @@ class WarCommand(private val plugin: HegemoniaWar) : CommandExecutor, TabComplet
             return
         }
 
+        val war = warService.getWar(warId)
+        if (war == null) {
+            sender.error("Guerre introuvable: #$warId")
+            return
+        }
+
         val side = when (args[2].lowercase()) {
             "attacker", "attaquant" -> WarSide.ATTACKER
             "defender", "défenseur", "defenseur" -> WarSide.DEFENDER
@@ -268,10 +483,46 @@ class WarCommand(private val plugin: HegemoniaWar) : CommandExecutor, TabComplet
             }
         }
 
-        // TODO: Récupérer la nation du joueur
-        val success = warService.joinWar(warId, 0, side) // 0 = placeholder
+        // Vérifier que le joueur a une nation
+        val playerNationId = nationBridge.getPlayerNationId(sender.uniqueId)
+        if (playerNationId == null) {
+            sender.error("Vous devez appartenir à une nation pour rejoindre une guerre.")
+            return
+        }
+
+        // Vérifier qu'il n'est pas déjà dans la guerre
+        if (playerNationId == war.attackerId || playerNationId == war.defenderId) {
+            sender.error("Votre nation participe déjà à cette guerre.")
+            return
+        }
+
+        // Vérifier les permissions
+        if (!nationBridge.canDeclareWar(sender.uniqueId)) {
+            sender.error("Vous n'avez pas les permissions pour engager votre nation dans une guerre.")
+            return
+        }
+
+        // Vérifier les alliances
+        val targetNationId = if (side == WarSide.ATTACKER) war.attackerId else war.defenderId
+        if (!nationBridge.areNationsAllied(playerNationId, targetNationId)) {
+            sender.error("Vous ne pouvez rejoindre que les guerres de vos alliés.")
+            return
+        }
+
+        val success = warService.joinWar(warId, playerNationId, side)
         if (success) {
-            sender.success("Votre nation a rejoint la guerre comme ${if (side == WarSide.ATTACKER) "attaquant" else "défenseur"}!")
+            val sideName = if (side == WarSide.ATTACKER) "attaquant" else "défenseur"
+            sender.success("Votre nation a rejoint la guerre comme $sideName!")
+
+            // Notifier les participants
+            listOf(war.attackerId, war.defenderId).forEach { nationId ->
+                nationBridge.getNationMembers(nationId).forEach { memberId ->
+                    memberId.player?.let { player ->
+                        val joinerName = nationBridge.getNationName(playerNationId) ?: "Nation #$playerNationId"
+                        player.info("$joinerName a rejoint la guerre comme $sideName!")
+                    }
+                }
+            }
         } else {
             sender.error("Impossible de rejoindre cette guerre.")
         }
@@ -322,10 +573,13 @@ class WarCommand(private val plugin: HegemoniaWar) : CommandExecutor, TabComplet
             return
         }
 
+        val attackerName = nationBridge.getNationName(war.attackerId) ?: "Attaquant"
+        val defenderName = nationBridge.getNationName(war.defenderId) ?: "Défenseur"
+
         sender.info("═══════ Score Guerre #$warId ═══════")
-        sender.info("Attaquant: ${war.attackerScore} points")
-        sender.info("Défenseur: ${war.defenderScore} points")
-        sender.info("Différence: ${war.totalScore} (${if (war.isAttackerWinning) "Attaquant" else "Défenseur"} en tête)")
+        sender.info("$attackerName: ${war.attackerScore} points")
+        sender.info("$defenderName: ${war.defenderScore} points")
+        sender.info("Différence: ${war.totalScore} (${if (war.isAttackerWinning) attackerName else defenderName} en tête)")
         sender.info("Seuil de victoire: ${war.warGoal.requiredScore} points")
     }
 
@@ -335,13 +589,46 @@ class WarCommand(private val plugin: HegemoniaWar) : CommandExecutor, TabComplet
             return
         }
 
-        // TODO: Afficher les guerres de la nation du joueur
-        sender.info("═══════ Statut de Guerre ═══════")
-        sender.info("Connectez-vous à une nation pour voir vos guerres.")
+        val playerNationId = nationBridge.getPlayerNationId(sender.uniqueId)
+        if (playerNationId == null) {
+            sender.info("═══════ Statut de Guerre ═══════")
+            sender.info("Vous n'appartenez à aucune nation.")
+            return
+        }
+
+        val nationName = nationBridge.getNationName(playerNationId) ?: "Votre nation"
+        val wars = warService.getNationWars(playerNationId)
+
+        sender.info("═══════ Guerres de $nationName ═══════")
+
+        if (wars.isEmpty()) {
+            sender.info("Aucune guerre en cours.")
+            return
+        }
+
+        wars.forEach { war ->
+            val isAttacker = war.attackerId == playerNationId
+            val enemyId = if (isAttacker) war.defenderId else war.attackerId
+            val enemyName = nationBridge.getNationName(enemyId) ?: "Nation #$enemyId"
+            val role = if (isAttacker) "Attaquant" else "Défenseur"
+
+            sender.info("#${war.id}: vs $enemyName ($role)")
+            sender.info("    ${war.status.color}${war.status.displayName} | Score: ${war.attackerScore}-${war.defenderScore}")
+        }
+    }
+
+    private fun handleMenu(sender: CommandSender) {
+        if (sender !is Player) {
+            sender.error("Cette commande doit être exécutée par un joueur.")
+            return
+        }
+        menuManager.openMainMenu(sender)
     }
 
     private fun sendHelp(sender: CommandSender) {
         sender.info("═══════ Commandes de Guerre ═══════")
+        sender.info("/war - Ouvre le menu GUI interactif")
+        sender.info("/war menu - Ouvre le menu GUI")
         sender.info("/war declare <nation> <objectif> [raison] - Déclarer la guerre")
         sender.info("/war info <id> - Informations sur une guerre")
         sender.info("/war list - Liste des guerres actives")
@@ -363,13 +650,24 @@ class WarCommand(private val plugin: HegemoniaWar) : CommandExecutor, TabComplet
     ): List<String> {
         return when (args.size) {
             1 -> listOf(
-                "declare", "info", "list", "peace", "accept", "reject",
+                "menu", "declare", "info", "list", "peace", "accept", "reject",
                 "surrender", "join", "history", "score", "status", "help"
             ).filter { it.startsWith(args[0], ignoreCase = true) }
 
             2 -> when (args[0].lowercase()) {
-                "declare" -> emptyList() // TODO: Liste des nations
-                "join" -> emptyList() // TODO: Liste des IDs de guerre
+                "declare" -> {
+                    // Suggérer les noms/tags des nations
+                    if (nationBridge.isAvailable()) {
+                        nationBridge.getAllNationIds()
+                            .mapNotNull { nationBridge.getNationName(it) }
+                            .filter { it.startsWith(args[1], ignoreCase = true) }
+                    } else emptyList()
+                }
+                "info", "peace", "accept", "reject", "surrender", "join", "history", "score" -> {
+                    // Suggérer les IDs des guerres actives
+                    warService.getActiveWars().map { it.id.toString() }
+                        .filter { it.startsWith(args[1]) }
+                }
                 else -> emptyList()
             }
 

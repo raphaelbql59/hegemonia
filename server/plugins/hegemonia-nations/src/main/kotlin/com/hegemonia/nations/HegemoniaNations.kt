@@ -4,6 +4,7 @@ import com.hegemonia.core.HegemoniaCore
 import com.hegemonia.nations.command.NationCommand
 import com.hegemonia.nations.command.NationAdminCommand
 import com.hegemonia.nations.dao.NationTables
+import com.hegemonia.nations.gui.NationMenuManager
 import com.hegemonia.nations.listener.PlayerListener
 import com.hegemonia.nations.listener.ProtectionListener
 import com.hegemonia.nations.service.NationService
@@ -34,6 +35,9 @@ class HegemoniaNations : JavaPlugin() {
     lateinit var territoryService: TerritoryService
         private set
 
+    lateinit var menuManager: NationMenuManager
+        private set
+
     private val core: HegemoniaCore
         get() = HegemoniaCore.get()
 
@@ -57,6 +61,10 @@ class HegemoniaNations : JavaPlugin() {
         playerService = PlayerService(core.database)
         territoryService = TerritoryService(core.database)
         logger.info("✓ Services initialisés")
+
+        // Initialiser le gestionnaire de menus GUI
+        menuManager = NationMenuManager(this)
+        logger.info("✓ Menus GUI initialisés")
 
         // Enregistrer les commandes
         registerCommands()

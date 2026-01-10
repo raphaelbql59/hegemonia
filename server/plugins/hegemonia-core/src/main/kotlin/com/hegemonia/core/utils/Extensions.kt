@@ -55,6 +55,12 @@ fun CommandSender.sendWarning(message: String) {
     sendMini("<yellow>⚠</yellow> <gray>$message</gray>")
 }
 
+// Alias courts pour une meilleure ergonomie
+fun CommandSender.success(message: String) = sendSuccess(message)
+fun CommandSender.error(message: String) = sendError(message)
+fun CommandSender.info(message: String) = sendInfo(message)
+fun CommandSender.warning(message: String) = sendWarning(message)
+
 // ========================================
 // NUMBER FORMATTING
 // ========================================
