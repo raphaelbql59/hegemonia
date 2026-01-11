@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "hegemonia",
+  "version": "${version}",
+  "name": "Hegemonia Client",
+  "description": "Client mod for Hegemonia - Custom GUIs, HUD, and server integration",
+  "authors": ["Hegemonia Team"],
+  "contact": {
+    "homepage": "https://hegemonia.fr",
+    "sources": "https://github.com/hegemonia/hegemonia-client"
+  },
+  "license": "All Rights Reserved",
+  "icon": "assets/hegemonia/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["com.hegemonia.client.HegemoniaClient"]
+  },
+  "mixins": ["hegemonia.mixins.json"],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "minecraft": "~${minecraft_version}",
+    "java": ">=21",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "cloth-config": "*",
+    "modmenu": "*"
+  },
+  "custom": {
+    "modmenu": {
+      "links": {
+        "modmenu.discord": "https://discord.gg/hegemonia"
+      }
+    }
+  }
+}

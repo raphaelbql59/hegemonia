@@ -4,24 +4,44 @@ import fs from 'fs';
 
 const router = express.Router();
 
-// Mod storage directory
-const MODS_DIR = process.env.MODS_DIR || '/var/www/hegemonia/mods';
-const RESOURCEPACKS_DIR = process.env.RESOURCEPACKS_DIR || '/var/www/hegemonia/resourcepacks';
+// Mod storage directory - use local modpack folder
+const MODS_DIR = process.env.MODS_DIR || path.join(__dirname, '../../modpack/mods');
+const RESOURCEPACKS_DIR = process.env.RESOURCEPACKS_DIR || path.join(__dirname, '../../modpack/resourcepacks');
 
 // Modpack manifest
 const MODPACK_MANIFEST = {
-  version: '1.0.0',
+  version: '1.1.0',
   minecraft_version: '1.20.4',
   fabric_version: '0.15.6',
   mods: [
     {
       id: 'fabric-api',
       name: 'Fabric API',
-      version: '0.92.0+1.20.4',
-      file_name: 'fabric-api-0.92.0+1.20.4.jar',
-      url: 'https://cdn.modrinth.com/data/P7dR8mSH/versions/P7uGFii0/fabric-api-0.92.0%2B1.20.4.jar',
+      version: '0.96.4+1.20.4',
+      file_name: 'fabric-api-0.96.4+1.20.4.jar',
+      url: 'https://cdn.modrinth.com/data/P7dR8mSH/versions/BPX6fK06/fabric-api-0.97.3%2B1.20.4.jar',
       sha256: '',
-      size: 2134567,
+      size: 2187523,
+      required: true,
+    },
+    {
+      id: 'hegemonia-client',
+      name: 'Hegemonia Client',
+      version: '1.0.0',
+      file_name: 'hegemonia-client-1.0.0.jar',
+      url: null, // Served from local API
+      sha256: '',
+      size: 76513,
+      required: true,
+    },
+    {
+      id: 'cloth-config',
+      name: 'Cloth Config API',
+      version: '13.0.121',
+      file_name: 'cloth-config-13.0.121-fabric.jar',
+      url: 'https://cdn.modrinth.com/data/9s6osm5g/versions/PbB23vRL/cloth-config-13.0.121-fabric.jar',
+      sha256: '',
+      size: 1245678,
       required: true,
     },
     {
@@ -29,9 +49,9 @@ const MODPACK_MANIFEST = {
       name: 'Sodium',
       version: '0.5.8+mc1.20.4',
       file_name: 'sodium-fabric-0.5.8+mc1.20.4.jar',
-      url: 'https://cdn.modrinth.com/data/AANobbMI/versions/b4hTi3mo/sodium-fabric-0.5.8%2Bmc1.20.4.jar',
+      url: 'https://cdn.modrinth.com/data/AANobbMI/versions/4GyXKCLd/sodium-fabric-0.5.8%2Bmc1.20.4.jar',
       sha256: '',
-      size: 1876234,
+      size: 1134567,
       required: true,
     },
     {
@@ -42,16 +62,6 @@ const MODPACK_MANIFEST = {
       url: 'https://cdn.modrinth.com/data/gvQqBUqZ/versions/nMhjKWVE/lithium-fabric-mc1.20.4-0.12.1.jar',
       sha256: '',
       size: 598432,
-      required: true,
-    },
-    {
-      id: 'modmenu',
-      name: 'Mod Menu',
-      version: '9.0.0',
-      file_name: 'modmenu-9.0.0.jar',
-      url: 'https://cdn.modrinth.com/data/mOgUt4GM/versions/IYlsoQxR/modmenu-9.0.0.jar',
-      sha256: '',
-      size: 342156,
       required: true,
     },
     {

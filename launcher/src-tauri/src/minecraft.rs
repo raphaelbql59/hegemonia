@@ -5,7 +5,8 @@ use tauri::Window;
 
 const MINECRAFT_VERSION: &str = "1.20.4";
 const FABRIC_VERSION: &str = "0.16.9";
-const HEGEMONIA_API: &str = "http://api.hegemonia.net/api";
+// API is currently not deployed - use fallback directly
+const HEGEMONIA_API: &str = "http://localhost:3001/api";
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DownloadProgress {
@@ -140,7 +141,12 @@ pub async fn check_installation_status() -> Result<InstallationStatus, String> {
 /// Fetch the Hegemonia modpack manifest from API
 #[tauri::command]
 pub async fn fetch_modpack_manifest() -> Result<HegemoniaPack, String> {
-    let client = reqwest::Client::new();
+    // Try API first with short timeout
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(3))
+        .build()
+        .unwrap_or_else(|_| reqwest::Client::new());
+
     let url = format!("{}/modpack/manifest", HEGEMONIA_API);
 
     match client.get(&url).send().await {
@@ -148,15 +154,19 @@ pub async fn fetch_modpack_manifest() -> Result<HegemoniaPack, String> {
             if response.status().is_success() {
                 match response.json::<HegemoniaPack>().await {
                     Ok(manifest) => Ok(manifest),
-                    Err(e) => Err(format!("Failed to parse manifest: {}", e)),
+                    Err(e) => {
+                        eprintln!("Failed to parse API manifest, using fallback: {}", e);
+                        Ok(get_fallback_manifest())
+                    }
                 }
             } else {
-                Err(format!("API error: {}", response.status()))
+                eprintln!("API returned {}, using fallback manifest", response.status());
+                Ok(get_fallback_manifest())
             }
         }
         Err(e) => {
             // Fallback to hardcoded manifest if API is unavailable
-            eprintln!("API unavailable, using fallback manifest: {}", e);
+            eprintln!("API unavailable ({}), using fallback manifest", e);
             Ok(get_fallback_manifest())
         }
     }
@@ -165,18 +175,28 @@ pub async fn fetch_modpack_manifest() -> Result<HegemoniaPack, String> {
 /// Fallback manifest when API is unavailable
 fn get_fallback_manifest() -> HegemoniaPack {
     HegemoniaPack {
-        version: "1.0.0".to_string(),
+        version: "1.1.0".to_string(),
         minecraft_version: MINECRAFT_VERSION.to_string(),
         fabric_version: FABRIC_VERSION.to_string(),
         mods: vec![
             ModInfo {
                 id: "fabric-api".to_string(),
                 name: "Fabric API".to_string(),
-                version: "0.97.3+1.20.4".to_string(),
-                file_name: "fabric-api-0.97.3+1.20.4.jar".to_string(),
+                version: "0.96.4+1.20.4".to_string(),
+                file_name: "fabric-api-0.96.4+1.20.4.jar".to_string(),
                 url: Some("https://cdn.modrinth.com/data/P7dR8mSH/versions/BPX6fK06/fabric-api-0.97.3%2B1.20.4.jar".to_string()),
                 sha256: String::new(),
                 size: 2187523,
+                required: true,
+            },
+            ModInfo {
+                id: "hegemonia-client".to_string(),
+                name: "Hegemonia Client".to_string(),
+                version: "1.0.0".to_string(),
+                file_name: "hegemonia-client-1.0.0.jar".to_string(),
+                url: None, // Will be downloaded from Hegemonia API
+                sha256: String::new(),
+                size: 76513,
                 required: true,
             },
             ModInfo {
@@ -197,6 +217,16 @@ fn get_fallback_manifest() -> HegemoniaPack {
                 url: Some("https://cdn.modrinth.com/data/gvQqBUqZ/versions/nMhjKWVE/lithium-fabric-mc1.20.4-0.12.1.jar".to_string()),
                 sha256: String::new(),
                 size: 598432,
+                required: true,
+            },
+            ModInfo {
+                id: "cloth-config".to_string(),
+                name: "Cloth Config API".to_string(),
+                version: "13.0.121".to_string(),
+                file_name: "cloth-config-13.0.121-fabric.jar".to_string(),
+                url: Some("https://cdn.modrinth.com/data/9s6osm5g/versions/PbB23vRL/cloth-config-13.0.121-fabric.jar".to_string()),
+                sha256: String::new(),
+                size: 1245678,
                 required: true,
             },
         ],
