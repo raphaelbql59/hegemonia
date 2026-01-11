@@ -7,6 +7,8 @@ import com.hegemonia.nations.dao.NationTables
 import com.hegemonia.nations.gui.NationMenuManager
 import com.hegemonia.nations.listener.PlayerListener
 import com.hegemonia.nations.listener.ProtectionListener
+import com.hegemonia.nations.service.ElectionService
+import com.hegemonia.nations.service.EmpireService
 import com.hegemonia.nations.service.NationService
 import com.hegemonia.nations.service.PlayerService
 import com.hegemonia.nations.service.TerritoryService
@@ -35,6 +37,12 @@ class HegemoniaNations : JavaPlugin() {
     lateinit var territoryService: TerritoryService
         private set
 
+    lateinit var empireService: EmpireService
+        private set
+
+    lateinit var electionService: ElectionService
+        private set
+
     lateinit var menuManager: NationMenuManager
         private set
 
@@ -60,6 +68,10 @@ class HegemoniaNations : JavaPlugin() {
         nationService = NationService(core.database)
         playerService = PlayerService(core.database)
         territoryService = TerritoryService(core.database)
+        empireService = EmpireService(this)
+        empireService.initialize()
+        electionService = ElectionService(this)
+        electionService.initialize()
         logger.info("✓ Services initialisés")
 
         // Initialiser le gestionnaire de menus GUI
@@ -100,7 +112,10 @@ class HegemoniaNations : JavaPlugin() {
                 NationTables.NationRoles,
                 NationTables.NationRelations,
                 NationTables.Territories,
-                NationTables.Players
+                NationTables.Players,
+                NationTables.Elections,
+                NationTables.ElectionCandidates,
+                NationTables.ElectionVotes
             )
         }
     }

@@ -9,8 +9,8 @@ plugins {
 }
 
 dependencies {
-    // Dépendance sur le core
-    implementation(project(":hegemonia-core"))
+    // Dépendance sur le core (compileOnly car c'est un plugin séparé)
+    compileOnly(project(":hegemonia-core"))
 }
 
 tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {

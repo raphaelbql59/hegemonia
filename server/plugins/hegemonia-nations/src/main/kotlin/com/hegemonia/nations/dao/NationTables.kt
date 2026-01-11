@@ -1,5 +1,6 @@
 package com.hegemonia.nations.dao
 
+import com.hegemonia.nations.model.ElectionStatus
 import com.hegemonia.nations.model.GovernmentType
 import com.hegemonia.nations.model.NationRole
 import com.hegemonia.nations.model.RelationType
@@ -148,6 +149,56 @@ object NationTables {
 
         init {
             uniqueIndex(playerId, nationId)
+        }
+    }
+
+    /**
+     * Table des élections
+     */
+    object Elections : IntIdTable("nation_elections") {
+        val nationId = integer("nation_id").references(Nations.id)
+        val status = enumerationByName("status", 20, ElectionStatus::class)
+            .default(ElectionStatus.REGISTRATION)
+        val position = varchar("position", 32).default("LEADER")  // LEADER, MINISTER, etc.
+        val startedAt = timestamp("started_at")
+        val registrationEndsAt = timestamp("registration_ends_at")
+        val votingEndsAt = timestamp("voting_ends_at")
+        val winnerId = uuid("winner_id").nullable()
+        val totalVotes = integer("total_votes").default(0)
+
+        init {
+            index(false, nationId)
+            index(false, status)
+        }
+    }
+
+    /**
+     * Table des candidats aux élections
+     */
+    object ElectionCandidates : IntIdTable("election_candidates") {
+        val electionId = integer("election_id").references(Elections.id)
+        val playerId = uuid("player_id")
+        val registeredAt = timestamp("registered_at")
+        val slogan = varchar("slogan", 128).nullable()
+        val voteCount = integer("vote_count").default(0)
+        val withdrawn = bool("withdrawn").default(false)
+
+        init {
+            uniqueIndex(electionId, playerId)
+        }
+    }
+
+    /**
+     * Table des votes
+     */
+    object ElectionVotes : IntIdTable("election_votes") {
+        val electionId = integer("election_id").references(Elections.id)
+        val voterId = uuid("voter_id")
+        val candidateId = uuid("candidate_id")
+        val votedAt = timestamp("voted_at")
+
+        init {
+            uniqueIndex(electionId, voterId)
         }
     }
 

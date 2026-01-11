@@ -316,6 +316,64 @@ class NationService(private val db: DatabaseManager) {
     }
 
     /**
+     * Alias pour getNation (utilisé par EmpireService)
+     */
+    fun getNationById(id: Int): Nation? = getNation(id)
+
+    /**
+     * Retire de l'argent du trésor national
+     */
+    fun withdrawFromTreasury(nationId: Int, amount: Double): Boolean {
+        val nation = getNation(nationId) ?: return false
+        if (nation.balance < amount) return false
+        return modifyBalance(nationId, -amount)
+    }
+
+    /**
+     * Dépose de l'argent dans le trésor national
+     */
+    fun depositToTreasury(nationId: Int, amount: Double): Boolean {
+        return modifyBalance(nationId, amount)
+    }
+
+    /**
+     * Modifie la puissance d'une nation
+     */
+    fun modifyPower(nationId: Int, amount: Int): Boolean {
+        return db.transaction {
+            Nations.update({ Nations.id eq nationId }) {
+                with(SqlExpressionBuilder) {
+                    it[power] = power + amount
+                }
+            } > 0
+        }.also { success ->
+            if (success) {
+                nationCache[nationId]?.let { nation ->
+                    nationCache[nationId] = nation.copy(power = nation.power + amount)
+                }
+            }
+        }
+    }
+
+    /**
+     * Récupère toutes les relations d'une nation
+     */
+    fun getRelations(nationId: Int): List<NationRelation> {
+        return db.transaction {
+            NationRelations.select { NationRelations.nationId eq nationId }
+                .map { row ->
+                    NationRelation(
+                        nationId = row[NationRelations.nationId],
+                        targetNationId = row[NationRelations.targetNationId],
+                        relationType = row[NationRelations.relationType],
+                        since = row[NationRelations.since],
+                        expiresAt = row[NationRelations.expiresAt]
+                    )
+                }
+        }
+    }
+
+    /**
      * Convertit un ResultRow en Nation
      */
     private fun ResultRow.toNation(): Nation {
