@@ -9,9 +9,9 @@ plugins {
 }
 
 dependencies {
-    // Dépendances sur les autres modules
-    implementation(project(":hegemonia-core"))
-    implementation(project(":hegemonia-nations"))
+    // Dépendances sur les autres modules (compileOnly car ce sont des plugins séparés)
+    compileOnly(project(":hegemonia-core"))
+    compileOnly(project(":hegemonia-nations"))
 
     // Vault pour compatibilité avec autres plugins économiques
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")

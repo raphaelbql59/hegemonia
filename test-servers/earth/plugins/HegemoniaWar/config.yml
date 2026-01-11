@@ -1,0 +1,327 @@
+# ==============================================
+#       HEGEMONIA WAR - CONFIGURATION
+# ==============================================
+# Système de guerre et batailles pour Hegemonia
+# Version: 1.0.0
+# ==============================================
+
+# ----------------------------------------------
+# GUERRE - Configuration générale
+# ----------------------------------------------
+war:
+  # Délai avant le début effectif d'une guerre (en heures)
+  # Après déclaration, la guerre commence après ce délai
+  start-delay-hours: 24
+
+  # Durée minimale de paix après une guerre (en jours)
+  # Empêche de redéclarer la guerre immédiatement
+  min-peace-duration-days: 7
+
+  # Score nécessaire pour gagner une guerre
+  win-score-threshold: 100
+
+  # Fatigue de guerre maximale avant capitulation forcée
+  max-war-weariness: 100
+
+  # Augmentation de la fatigue de guerre par heure (%)
+  weariness-per-hour: 1
+
+  # Multiplicateur de fatigue si la guerre est défensive
+  defensive-weariness-multiplier: 0.7
+
+  # Permettre les guerres multiples simultanées
+  allow-multiple-wars: true
+
+  # Nombre maximum de guerres par nation
+  max-wars-per-nation: 3
+
+  # Permettre aux alliés de rejoindre les guerres
+  allow-allies: true
+
+  # Coût en argent pour déclarer une guerre (si économie activée)
+  declaration-cost: 10000.0
+
+# ----------------------------------------------
+# BATAILLES - Configuration
+# ----------------------------------------------
+battle:
+  # Rayon par défaut d'une bataille (en blocs)
+  default-radius: 100
+
+  # Rayon maximum autorisé
+  max-radius: 500
+
+  # Durée minimale d'une bataille (en minutes)
+  min-duration: 15
+
+  # Durée maximale d'une bataille (en minutes)
+  max-duration: 60
+
+  # Fin automatique si un côté n'a plus de participants
+  auto-end-if-empty: true
+
+  # Délai avant fin automatique si un côté est vide (en secondes)
+  auto-end-delay: 30
+
+  # Tir ami (friendly fire) activé
+  friendly-fire: false
+
+  # Délai de respawn après mort (en secondes)
+  respawn-delay: 10
+
+  # Points par kill
+  score-per-kill: 5
+
+  # Points bonus pour victoire
+  victory-bonus: 50
+
+  # Nombre maximum de participants par type de bataille
+  max-participants:
+    skirmish: 10
+    battle: 30
+    siege: 50
+    naval_battle: 20
+    aerial_battle: 15
+    grand_battle: 100
+
+  # Temps hors zone avant désertion automatique (en secondes)
+  out-of-zone-timeout: 60
+
+  # Pénalité pour désertion (pourcentage des gains)
+  desertion-penalty: 50
+
+  # Permettre la création de batailles par les joueurs
+  allow-player-creation: false
+
+# ----------------------------------------------
+# CRÉNEAUX HORAIRES - Protection
+# ----------------------------------------------
+time-slots:
+  # Activer le système de créneaux horaires
+  # Empêche les attaques en dehors des heures définies
+  enabled: true
+
+  # Créneaux par défaut pour toutes les nations
+  # Format: [jour_semaine (1-7), heure_début (0-23), heure_fin (0-23)]
+  default-slots:
+    - day: 1  # Lundi
+      start: 18
+      end: 23
+    - day: 2  # Mardi
+      start: 18
+      end: 23
+    - day: 3  # Mercredi
+      start: 18
+      end: 23
+    - day: 4  # Jeudi
+      start: 18
+      end: 23
+    - day: 5  # Vendredi
+      start: 18
+      end: 23
+    - day: 6  # Samedi
+      start: 14
+      end: 23
+    - day: 7  # Dimanche
+      start: 14
+      end: 23
+
+  # Permettre aux nations de personnaliser leurs créneaux
+  allow-custom-slots: true
+
+  # Nombre minimum d'heures par semaine
+  min-hours-per-week: 20
+
+# ----------------------------------------------
+# SIÈGES - Configuration
+# ----------------------------------------------
+siege:
+  # Santé par défaut des murs
+  default-walls-health: 1000
+
+  # Santé par défaut des portes
+  default-gates-health: 500
+
+  # Multiplicateur de santé par niveau de fortification
+  fortification-multiplier: 1.5
+
+  # Bonus défensif par niveau de fortification (%)
+  defense-bonus-per-level: 10
+
+  # Permettre la réparation pendant le siège
+  allow-repairs: true
+
+  # Coût de réparation par point de santé
+  repair-cost-per-point: 10.0
+
+  # Vitesse de réparation (points par seconde)
+  repair-speed: 5
+
+  # Équipement de siège
+  equipment:
+    battering_ram:
+      enabled: true
+      cost: 500.0
+    catapult:
+      enabled: true
+      cost: 1000.0
+    trebuchet:
+      enabled: true
+      cost: 2000.0
+    siege_tower:
+      enabled: true
+      cost: 1500.0
+    cannon:
+      enabled: true
+      cost: 5000.0
+    explosives:
+      enabled: true
+      cost: 3000.0
+
+# ----------------------------------------------
+# OBJECTIFS DE GUERRE - Configuration
+# ----------------------------------------------
+war-goals:
+  conquest:
+    enabled: true
+    score-multiplier: 1.0
+    required-score: 100
+  subjugation:
+    enabled: true
+    score-multiplier: 1.5
+    required-score: 150
+  liberation:
+    enabled: true
+    score-multiplier: 0.8
+    required-score: 80
+  humiliation:
+    enabled: true
+    score-multiplier: 0.6
+    required-score: 60
+  independence:
+    enabled: true
+    score-multiplier: 1.2
+    required-score: 120
+  total_war:
+    enabled: true
+    score-multiplier: 2.0
+    required-score: 200
+  defensive:
+    enabled: true
+    score-multiplier: 0.7
+    required-score: 70
+  revenge:
+    enabled: true
+    score-multiplier: 1.1
+    required-score: 110
+
+# ----------------------------------------------
+# NOTIFICATIONS - Configuration
+# ----------------------------------------------
+notifications:
+  # Activer les notifications Discord
+  discord:
+    enabled: false
+    webhook-url: ""
+
+    # Notifications à envoyer
+    war-declared: true
+    war-started: true
+    war-ended: true
+    battle-started: true
+    battle-ended: true
+    siege-started: true
+    territory-captured: true
+
+  # Activer les notifications in-game
+  in-game:
+    enabled: true
+
+    # Titre d'écran pour événements majeurs
+    show-titles: true
+
+    # Sons pour notifications
+    play-sounds: true
+
+  # Activer les annonces globales
+  broadcast:
+    enabled: true
+    war-declarations: true
+    war-ends: true
+    major-battles: true
+
+# ----------------------------------------------
+# ÉCONOMIE - Intégration
+# ----------------------------------------------
+economy:
+  # Activer l'intégration économique
+  enabled: true
+
+  # Coût de déclaration de guerre
+  war-declaration-cost: 10000.0
+
+  # Coût de création de bataille
+  battle-creation-cost: 1000.0
+
+  # Récompenses pour victoires
+  rewards:
+    battle-win: 500.0
+    war-win: 5000.0
+    siege-win: 2000.0
+
+  # Pénalités pour défaites
+  penalties:
+    battle-loss: 0.0
+    war-loss: 0.0
+    desertion: 100.0
+
+# ----------------------------------------------
+# BASE DE DONNÉES - Configuration
+# ----------------------------------------------
+database:
+  # Activer le cache en mémoire
+  cache-enabled: true
+
+  # Durée du cache (en secondes)
+  cache-duration: 300
+
+  # Taille maximale du cache
+  cache-max-size: 1000
+
+  # Activer l'historique complet
+  full-history: true
+
+  # Durée de rétention de l'historique (en jours)
+  history-retention-days: 90
+
+# ----------------------------------------------
+# PERFORMANCE - Optimisation
+# ----------------------------------------------
+performance:
+  # Intervalle de mise à jour des batailles (en ticks)
+  battle-update-interval: 20
+
+  # Intervalle de vérification des zones (en ticks)
+  zone-check-interval: 10
+
+  # Activer le mode asynchrone pour les requêtes DB
+  async-database: true
+
+  # Taille du pool de threads
+  thread-pool-size: 4
+
+# ----------------------------------------------
+# DEBUG - Développement
+# ----------------------------------------------
+debug:
+  # Activer le mode debug
+  enabled: false
+
+  # Logger toutes les requêtes DB
+  log-queries: false
+
+  # Logger tous les événements
+  log-events: false
+
+  # Afficher les messages de debug
+  verbose: false
