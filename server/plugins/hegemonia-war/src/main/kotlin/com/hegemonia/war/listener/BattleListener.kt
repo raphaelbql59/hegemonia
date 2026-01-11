@@ -59,9 +59,8 @@ class BattleListener(private val plugin: HegemoniaWar) : Listener {
         }
 
         // Vérifier si les joueurs sont du même côté (friendly fire)
-        val participants = battleService.getParticipants(battleId)
-        val attackerSide = participants.find { it.playerId == attacker.uniqueId }?.side
-        val victimSide = participants.find { it.playerId == victim.uniqueId }?.side
+        val attackerSide = battleService.getPlayerSide(battleId, attacker.uniqueId)
+        val victimSide = battleService.getPlayerSide(battleId, victim.uniqueId)
 
         if (attackerSide == victimSide) {
             // Friendly fire désactivé par défaut
@@ -72,7 +71,8 @@ class BattleListener(private val plugin: HegemoniaWar) : Listener {
             }
         }
 
-        // TODO: Enregistrer les dégâts dans les stats
+        // Enregistrer les dégâts dans les stats
+        battleService.recordDamage(battleId, attacker.uniqueId, victim.uniqueId, event.finalDamage)
     }
 
     /**
@@ -128,6 +128,15 @@ class BattleListener(private val plugin: HegemoniaWar) : Listener {
         val battle = battleService.getBattle(battleId) ?: return
         if (battle.status != BattleStatus.IN_PROGRESS) return
 
+        // Récupérer le côté du joueur pour déterminer le point de respawn
+        val side = battleService.getPlayerSide(battleId, player.uniqueId) ?: return
+        val respawnLocation = battleService.getRespawnLocation(battleId, side)
+
+        // Téléporter au point de respawn de l'équipe
+        if (respawnLocation != null) {
+            event.respawnLocation = respawnLocation
+        }
+
         // Afficher le titre de respawn
         player.showTitle(Title.title(
             Component.text("RESPAWN", NamedTextColor.RED),
@@ -143,8 +152,6 @@ class BattleListener(private val plugin: HegemoniaWar) : Listener {
         plugin.server.scheduler.runTaskLater(plugin, Runnable {
             battleService.respawnPlayer(battleId, player.uniqueId)
         }, 20L * 5) // 5 secondes de délai
-
-        // TODO: Téléporter au point de respawn de l'équipe
     }
 
     /**
@@ -153,10 +160,10 @@ class BattleListener(private val plugin: HegemoniaWar) : Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     fun onPlayerMove(event: PlayerMoveEvent) {
         val player = event.player
+        val to = event.to ?: return
 
         // Optimisation: ne vérifier que si le joueur a changé de block
-        if (event.from.blockX == event.to?.blockX &&
-            event.from.blockZ == event.to?.blockZ) {
+        if (event.from.blockX == to.blockX && event.from.blockZ == to.blockZ) {
             return
         }
 
@@ -164,17 +171,57 @@ class BattleListener(private val plugin: HegemoniaWar) : Listener {
         val battle = battleService.getBattle(battleId) ?: return
 
         val wasInZone = battle.isInBattleZone(event.from)
-        val isInZone = event.to?.let { battle.isInBattleZone(it) } ?: false
+        val isInZone = battle.isInBattleZone(to)
 
         if (wasInZone && !isInZone) {
             // Le joueur sort de la zone
             player.warning("⚠ Vous quittez la zone de combat!")
             player.warning("Vous avez 30 secondes pour revenir.")
 
-            // TODO: Démarrer un timer pour forcer le retour ou désertion
+            // Démarrer un timer pour forcer le retour ou désertion
+            startDesertionTimer(player, battleId)
         } else if (!wasInZone && isInZone) {
-            // Le joueur entre dans la zone
+            // Le joueur entre dans la zone - annuler le timer de désertion
+            cancelDesertionTimer(player)
             player.info("Vous êtes de retour dans la zone de combat.")
+        }
+    }
+
+    // Map des timers de désertion par joueur
+    private val desertionTimers = mutableMapOf<java.util.UUID, Int>()
+
+    private fun startDesertionTimer(player: Player, battleId: Int) {
+        // Annuler un timer existant
+        cancelDesertionTimer(player)
+
+        // Créer un nouveau timer de 30 secondes
+        val taskId = plugin.server.scheduler.runTaskLater(plugin, Runnable {
+            // Vérifier si le joueur est toujours hors zone
+            val battle = battleService.getBattle(battleId) ?: return@Runnable
+            if (!battle.isInBattleZone(player.location)) {
+                // Désertion
+                battleService.leaveBattle(battleId, player.uniqueId)
+                player.error("Vous avez déserté la bataille!")
+
+                broadcastToBattle(battleId, Component.text()
+                    .append(Component.text("⚠ DÉSERTION! ", NamedTextColor.RED))
+                    .append(Component.text(player.name, NamedTextColor.GRAY))
+                    .append(Component.text(" a abandonné le combat", NamedTextColor.YELLOW))
+                    .build()
+                )
+
+                // Vérifier si la bataille doit se terminer
+                checkBattleEnd(battleId)
+            }
+            desertionTimers.remove(player.uniqueId)
+        }, 20L * 30).taskId // 30 secondes
+
+        desertionTimers[player.uniqueId] = taskId
+    }
+
+    private fun cancelDesertionTimer(player: Player) {
+        desertionTimers.remove(player.uniqueId)?.let { taskId: Int ->
+            plugin.server.scheduler.cancelTask(taskId)
         }
     }
 

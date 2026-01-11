@@ -235,6 +235,75 @@ class BattleService(
     }
 
     /**
+     * Enregistre les dégâts infligés/reçus
+     */
+    fun recordDamage(battleId: Int, attackerId: UUID, victimId: UUID, damage: Double): Boolean {
+        return db.transaction {
+            // Mettre à jour les dégâts infligés par l'attaquant
+            BattleParticipants.update({
+                (BattleParticipants.battleId eq battleId) and (BattleParticipants.playerId eq attackerId)
+            }) {
+                with(SqlExpressionBuilder) {
+                    it[damageDealt] = damageDealt + damage
+                }
+            }
+
+            // Mettre à jour les dégâts reçus par la victime
+            BattleParticipants.update({
+                (BattleParticipants.battleId eq battleId) and (BattleParticipants.playerId eq victimId)
+            }) {
+                with(SqlExpressionBuilder) {
+                    it[damageTaken] = damageTaken + damage
+                }
+            }
+            true
+        }
+    }
+
+    /**
+     * Récupère la position de respawn pour une équipe
+     * Note: Utilise le monde overworld par défaut (world)
+     */
+    fun getRespawnLocation(battleId: Int, side: WarSide): Location? {
+        val battle = getBattle(battleId) ?: return null
+
+        // Utiliser le monde overworld (le plus commun pour les batailles)
+        val world = org.bukkit.Bukkit.getWorld("world")
+            ?: org.bukkit.Bukkit.getWorlds().firstOrNull()
+            ?: return null
+
+        val center = Location(world, battle.centerX, battle.centerY, battle.centerZ)
+
+        // Décaler le spawn en fonction du côté (70% du rayon)
+        val offset = battle.radius * 0.7
+        val spawnLocation = when (side) {
+            WarSide.ATTACKER -> center.clone().add(offset, 0.0, 0.0)
+            WarSide.DEFENDER -> center.clone().add(-offset, 0.0, 0.0)
+        }
+
+        // S'assurer que le spawn est sur un bloc solide
+        val highestY = world.getHighestBlockYAt(spawnLocation.blockX, spawnLocation.blockZ)
+        spawnLocation.y = (highestY + 1).toDouble()
+
+        return spawnLocation
+    }
+
+    /**
+     * Récupère le côté d'un joueur dans une bataille
+     */
+    fun getPlayerSide(battleId: Int, playerId: UUID): WarSide? {
+        return db.transaction {
+            BattleParticipants
+                .select {
+                    (BattleParticipants.battleId eq battleId) and
+                    (BattleParticipants.playerId eq playerId)
+                }
+                .singleOrNull()
+                ?.get(BattleParticipants.side)
+        }
+    }
+
+    /**
      * Termine une bataille
      */
     fun endBattle(battleId: Int, winnerId: Int? = null): Boolean {
@@ -316,22 +385,24 @@ class BattleService(
     }
 
     /**
-     * Récupère les batailles actives d'une guerre
+     * Récupère les batailles actives d'une guerre (incluant les programmées)
      */
     fun getActiveBattles(warId: Int): List<Battle> {
         return db.transaction {
             Battles.select {
                 (Battles.warId eq warId) and
-                        (Battles.status inList listOf(BattleStatus.IN_PROGRESS, BattleStatus.PREPARATION))
+                        (Battles.status inList listOf(BattleStatus.SCHEDULED, BattleStatus.IN_PROGRESS, BattleStatus.PREPARATION))
             }.map { it.toBattle() }
         }
     }
 
     /**
      * Vérifie si un joueur est dans une bataille
+     * @return L'ID de la bataille ou null si le joueur n'est dans aucune bataille
      */
     fun isInBattle(playerId: UUID): Int? {
-        return battleParticipants.entries
+        // Copie snapshot pour itération thread-safe
+        return battleParticipants.toMap().entries
             .find { it.value.contains(playerId) }
             ?.key
     }
@@ -371,19 +442,22 @@ class BattleService(
 
     /**
      * Compte les participants actifs par côté
+     * Un participant est actif s'il est vivant ET n'a pas quitté la bataille
      */
     fun countActiveParticipants(battleId: Int): Pair<Int, Int> {
         return db.transaction {
             val attackers = BattleParticipants.select {
                 (BattleParticipants.battleId eq battleId) and
                         (BattleParticipants.side eq WarSide.ATTACKER) and
-                        (BattleParticipants.isAlive eq true)
+                        (BattleParticipants.isAlive eq true) and
+                        (BattleParticipants.leftAt.isNull())
             }.count().toInt()
 
             val defenders = BattleParticipants.select {
                 (BattleParticipants.battleId eq battleId) and
                         (BattleParticipants.side eq WarSide.DEFENDER) and
-                        (BattleParticipants.isAlive eq true)
+                        (BattleParticipants.isAlive eq true) and
+                        (BattleParticipants.leftAt.isNull())
             }.count().toInt()
 
             attackers to defenders

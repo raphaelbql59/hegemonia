@@ -34,11 +34,9 @@ class WarListener(private val plugin: HegemoniaWar) : Listener {
      * Notifie un joueur de son statut de guerre
      */
     private fun notifyPlayerWarStatus(player: org.bukkit.entity.Player) {
-        // TODO: Récupérer la nation du joueur via hegemonia-nations
-        // val nationId = nationService.getPlayerNation(player.uniqueId)?.id ?: return
+        // Récupérer la nation du joueur via le NationBridge
+        val nationId = plugin.nationBridge.getPlayerNationId(player.uniqueId) ?: return
 
-        // Placeholder: notifier de toutes les guerres actives (à remplacer par les guerres du joueur)
-        /*
         val activeWars = warService.getActiveWars(nationId)
 
         if (activeWars.isNotEmpty()) {
@@ -67,11 +65,13 @@ class WarListener(private val plugin: HegemoniaWar) : Listener {
 
                 val isAttacker = war.attackerId == nationId
                 val enemyId = if (isAttacker) war.defenderId else war.attackerId
+                val enemyName = plugin.nationBridge.getNationName(enemyId) ?: "Nation #$enemyId"
                 val role = if (isAttacker) "Attaquant" else "Défenseur"
 
                 player.sendMessage(Component.text()
                     .append(Component.text("⚔ ", NamedTextColor.RED))
-                    .append(Component.text("Guerre #${war.id}", NamedTextColor.GOLD))
+                    .append(Component.text("Guerre contre ", NamedTextColor.GOLD))
+                    .append(Component.text(enemyName, NamedTextColor.YELLOW))
                     .append(Component.text(" - ", NamedTextColor.GRAY))
                     .append(Component.text(war.status.displayName, statusColor))
                     .build()
@@ -106,7 +106,6 @@ class WarListener(private val plugin: HegemoniaWar) : Listener {
                 .build()
             )
         }
-        */
     }
 
     /**

@@ -9,8 +9,8 @@ plugins {
 }
 
 dependencies {
-    // Dépendances sur les autres modules
-    implementation(project(":hegemonia-core"))
+    // Dépendances sur les autres modules (compileOnly car ce sont des plugins séparés)
+    compileOnly(project(":hegemonia-core"))
     compileOnly(project(":hegemonia-nations"))
 }
 

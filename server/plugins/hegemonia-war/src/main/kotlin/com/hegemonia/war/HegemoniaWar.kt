@@ -133,22 +133,135 @@ class HegemoniaWar : JavaPlugin() {
     private fun checkWarStarts() {
         // Démarrer les guerres dont le délai est écoulé
         val now = java.time.Instant.now()
-        // TODO: Implémenter la logique de démarrage automatique
+
+        warService.getActiveWars().forEach { war ->
+            if (war.status == com.hegemonia.war.model.WarStatus.DECLARED) {
+                val startTime = war.startedAt ?: return@forEach
+                if (now.isAfter(startTime) || now == startTime) {
+                    if (warService.startWar(war.id)) {
+                        logger.info("Guerre #${war.id} démarrée automatiquement")
+
+                        // Notifier les nations
+                        val attackerName = nationBridge.getNationName(war.attackerId) ?: "Nation #${war.attackerId}"
+                        val defenderName = nationBridge.getNationName(war.defenderId) ?: "Nation #${war.defenderId}"
+
+                        server.broadcast(
+                            HegemoniaCore.get().parse(
+                                "<dark_red>⚔ GUERRE!</dark_red> La guerre entre <gold>$attackerName</gold> et <gold>$defenderName</gold> a officiellement commencé!"
+                            )
+                        )
+                    }
+                }
+            }
+        }
     }
 
     private fun checkScheduledBattles() {
         // Démarrer les batailles programmées
-        // TODO: Implémenter la logique de démarrage des batailles
+        val now = java.time.Instant.now()
+
+        warService.getActiveWars().forEach { war ->
+            if (war.status == com.hegemonia.war.model.WarStatus.ACTIVE) {
+                battleService.getActiveBattles(war.id).forEach { battle ->
+                    if (battle.status == com.hegemonia.war.model.BattleStatus.SCHEDULED) {
+                        val scheduledAt = battle.scheduledAt ?: return@forEach
+                        if (now.isAfter(scheduledAt) || now == scheduledAt) {
+                            if (battleService.startBattle(battle.id)) {
+                                logger.info("Bataille #${battle.id} démarrée automatiquement")
+
+                                // Notifier les joueurs des nations concernées
+                                val attackerName = nationBridge.getNationName(battle.attackerNationId) ?: "Attaquant"
+                                val defenderName = nationBridge.getNationName(battle.defenderNationId) ?: "Défenseur"
+
+                                server.broadcast(
+                                    HegemoniaCore.get().parse(
+                                        "<red>⚔ BATAILLE!</red> Une bataille commence entre <gold>$attackerName</gold> et <gold>$defenderName</gold> à ${battle.regionId}!"
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private fun updateSieges() {
-        // Mettre à jour la progression des sièges
-        // TODO: Implémenter la mise à jour des sièges
+        // Mettre à jour la progression des sièges pour les batailles actives
+        warService.getActiveWars().forEach { war ->
+            if (war.status == com.hegemonia.war.model.WarStatus.ACTIVE) {
+                battleService.getActiveBattles(war.id).forEach { battle ->
+                    if (battle.status == com.hegemonia.war.model.BattleStatus.IN_PROGRESS &&
+                        battle.type == com.hegemonia.war.model.BattleType.SIEGE) {
+
+                        val siege = siegeService.getSiege(battle.id) ?: return@forEach
+
+                        // Compter les joueurs actifs de chaque côté
+                        val (attackers, defenders) = battleService.countActiveParticipants(battle.id)
+
+                        // Calculer la progression basée sur la supériorité numérique
+                        val progressChange = when {
+                            attackers > defenders * 2 -> 3  // Supériorité écrasante
+                            attackers > defenders -> 2      // Supériorité
+                            attackers == defenders -> 0     // Égalité
+                            defenders > attackers -> -1     // Défenseurs repoussent
+                            else -> 0
+                        }
+
+                        if (progressChange != 0) {
+                            siegeService.updateProgress(battle.id, progressChange)
+
+                            // Vérifier si le siège est terminé
+                            if (siegeService.isComplete(battle.id)) {
+                                battleService.endBattle(battle.id, battle.attackerNationId)
+                                logger.info("Siège #${battle.id} terminé - Victoire de l'attaquant")
+                            }
+                        }
+
+                        // Vérifier si une brèche est ouverte (bonus pour l'attaquant)
+                        if (siegeService.isBreached(battle.id) && siege.siegeProgress < 100) {
+                            // Accélérer la progression si brèche
+                            siegeService.updateProgress(battle.id, 1)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private fun checkWarWeariness() {
-        // Augmenter la fatigue de guerre
-        // TODO: Implémenter la fatigue de guerre progressive
+        // Augmenter la fatigue de guerre pour les guerres actives
+        warService.getActiveWars().forEach { war ->
+            if (war.status == com.hegemonia.war.model.WarStatus.ACTIVE) {
+                // Fatigue de base par heure
+                val baseWeariness = 1
+
+                // Les deux côtés accumulent de la fatigue
+                warService.addWarWeariness(war.id, com.hegemonia.war.model.WarSide.ATTACKER, baseWeariness)
+                warService.addWarWeariness(war.id, com.hegemonia.war.model.WarSide.DEFENDER, baseWeariness)
+
+                // Vérifier si la guerre peut se terminer automatiquement (fatigue max)
+                val updatedWar = warService.getWar(war.id) ?: return@forEach
+                if (updatedWar.canEndWar()) {
+                    val winner = updatedWar.getWinner()
+                    if (winner != null) {
+                        // La nation avec trop de fatigue capitule automatiquement
+                        val loser = if (winner == war.attackerId) war.defenderId else war.attackerId
+                        warService.surrender(war.id, loser)
+
+                        val winnerName = nationBridge.getNationName(winner) ?: "Vainqueur"
+                        val loserName = nationBridge.getNationName(loser) ?: "Perdant"
+
+                        server.broadcast(
+                            HegemoniaCore.get().parse(
+                                "<gold>⚔ FIN DE GUERRE!</gold> <yellow>$loserName</yellow> a capitulé face à <gold>$winnerName</gold> (fatigue de guerre)!"
+                            )
+                        )
+                        logger.info("Guerre #${war.id} terminée automatiquement - Capitulation par fatigue")
+                    }
+                }
+            }
+        }
     }
 
     private fun savePendingData() {
