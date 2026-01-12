@@ -138,10 +138,10 @@ pub async fn check_installation_status() -> Result<InstallationStatus, String> {
     })
 }
 
-/// Check if hegemonia-client mod needs update by comparing GitHub release commit SHA
+/// Check if hegemonia-client mod needs update by comparing GitHub release updated_at timestamp
 async fn check_hegemonia_client_update(version_file: &PathBuf) -> bool {
-    // Get current cached version
-    let cached_sha = fs::read_to_string(version_file).unwrap_or_default();
+    // Get current cached version timestamp
+    let cached_timestamp = fs::read_to_string(version_file).unwrap_or_default();
 
     // Fetch latest release info from GitHub
     let client = reqwest::Client::builder()
@@ -156,16 +156,16 @@ async fn check_hegemonia_client_update(version_file: &PathBuf) -> bool {
     {
         Ok(response) => {
             if let Ok(json) = response.json::<serde_json::Value>().await {
-                // Use target_commitish (commit SHA) as version identifier
-                if let Some(sha) = json.get("target_commitish").and_then(|v| v.as_str()) {
-                    if sha != cached_sha.trim() {
+                // Use updated_at timestamp as version identifier (more reliable than commit SHA)
+                if let Some(updated_at) = json.get("updated_at").and_then(|v| v.as_str()) {
+                    if updated_at != cached_timestamp.trim() {
                         return true; // Update needed
                     }
                 }
             }
             false
         }
-        Err(_) => false, // If we can't check, don't force update
+        Err(_) => true, // If we can't check, force update to be safe
     }
 }
 
@@ -396,7 +396,7 @@ pub async fn install_modpack(window: Window) -> Result<String, String> {
                 // Save version for hegemonia-client to enable update checking
                 if mod_info.id == "hegemonia-client" {
                     let version_file = mods_dir.join(".hegemonia-client-version");
-                    // Fetch and save the commit SHA
+                    // Fetch and save the updated_at timestamp
                     if let Ok(response) = reqwest::Client::new()
                         .get("https://api.github.com/repos/raphaelbql59/hegemonia/releases/tags/client-latest")
                         .header("User-Agent", "Hegemonia-Launcher")
@@ -404,8 +404,8 @@ pub async fn install_modpack(window: Window) -> Result<String, String> {
                         .await
                     {
                         if let Ok(json) = response.json::<serde_json::Value>().await {
-                            if let Some(sha) = json.get("target_commitish").and_then(|v| v.as_str()) {
-                                save_hegemonia_client_version(&version_file, sha);
+                            if let Some(updated_at) = json.get("updated_at").and_then(|v| v.as_str()) {
+                                save_hegemonia_client_version(&version_file, updated_at);
                             }
                         }
                     }

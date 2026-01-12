@@ -66,15 +66,14 @@ pub async fn launch_minecraft(
             let _ = std::fs::write(&log_path, format!("{}Warning: Could not create mods dir: {}\n", log_content, e));
         }
 
-        // Copy each mod file
+        // Copy each mod file (ALWAYS overwrite to get updates)
         if let Ok(entries) = std::fs::read_dir(&source_mods) {
             for entry in entries.flatten() {
                 let src = entry.path();
                 if src.extension().map(|e| e == "jar").unwrap_or(false) {
                     let dest = target_mods.join(entry.file_name());
-                    if !dest.exists() {
-                        let _ = std::fs::copy(&src, &dest);
-                    }
+                    // Always copy/overwrite to ensure updates are applied
+                    let _ = std::fs::copy(&src, &dest);
                 }
             }
         }
