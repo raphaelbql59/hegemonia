@@ -13,19 +13,30 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Hegemonia HUD overlay - displays player info and notifications
+ * HEGEMONIA HUD v2.0
+ *
+ * Modern overlay with player stats and notifications.
+ * Noir/Or theme with smooth animations.
+ *
+ * Top-left: Compact info bar with Balance, Bank, Nation, War
+ * Right: Sliding notifications
  */
 public class HegemoniaHud {
 
-    private static final DecimalFormat MONEY_FORMAT = new DecimalFormat("#,##0.00");
+    private static final DecimalFormat MONEY_FORMAT = new DecimalFormat("#,##0");
 
     private boolean visible = true;
     private final List<Notification> notifications = new ArrayList<>();
     private final MinecraftClient client;
 
     // Animation
-    private float animationProgress = 0f;
-    private boolean animatingIn = true;
+    private float openAnim = 0f;
+    private float pulseAnim = 0f;
+
+    // Hover states for interactive elements
+    private boolean balanceHovered = false;
+    private boolean bankHovered = false;
+    private boolean nationHovered = false;
 
     public HegemoniaHud() {
         this.client = MinecraftClient.getInstance();
@@ -35,94 +46,146 @@ public class HegemoniaHud {
         HudRenderCallback.EVENT.register(this::render);
     }
 
-    private void render(DrawContext context, float tickDelta) {
+    private void render(DrawContext ctx, float tickDelta) {
         if (client.player == null) return;
         if (!HegemoniaClient.getInstance().getPlayerData().isConnectedToHegemonia) return;
         if (client.options.hudHidden) return;
 
-        // Update animation
-        updateAnimation(tickDelta);
+        // Update animations
+        updateAnimations(tickDelta);
 
-        if (!visible && animationProgress <= 0) return;
+        if (!visible && openAnim <= 0.01f) return;
+
+        float ease = HegemoniaDesign.easeOut(openAnim);
 
         // Render components
-        renderPlayerInfo(context);
-        renderNotifications(context, tickDelta);
+        renderInfoBar(ctx, ease);
+        renderNotifications(ctx, tickDelta, ease);
     }
 
-    private void updateAnimation(float delta) {
-        float speed = 0.1f;
-        if (visible && animatingIn) {
-            animationProgress = Math.min(1f, animationProgress + speed);
-        } else if (!visible) {
-            animationProgress = Math.max(0f, animationProgress - speed);
-            animatingIn = false;
-        }
-        if (visible) animatingIn = true;
+    private void updateAnimations(float delta) {
+        // Open animation
+        float target = visible ? 1f : 0f;
+        openAnim += (target - openAnim) * HegemoniaDesign.ANIM_NORMAL;
+
+        // Pulse animation (for war indicator)
+        pulseAnim += 0.05f;
+        if (pulseAnim > Math.PI * 2) pulseAnim -= Math.PI * 2;
     }
 
-    private void renderPlayerInfo(DrawContext context) {
+    /**
+     * Render the main info bar (top-left)
+     */
+    private void renderInfoBar(DrawContext ctx, float ease) {
         HegemoniaClient.PlayerData data = HegemoniaClient.getInstance().getPlayerData();
         TextRenderer textRenderer = client.textRenderer;
 
-        int x = 10;
-        int y = 10;
-        int padding = 8;
-        int lineHeight = 12;
+        int x = 8;
+        int y = 8;
 
-        // Calculate panel dimensions
-        int panelWidth = 160;
-        int lines = 2; // Balance + Bank
-        if (data.hasNation()) lines += 2; // Nation + Role
-        if (data.atWar) lines += 1; // War status
-        int panelHeight = (lines * lineHeight) + (padding * 2);
-
-        // Apply animation offset
-        int animOffset = (int) ((1f - animationProgress) * -200);
+        // Animate in from left
+        int animOffset = (int) ((1f - ease) * -100);
         x += animOffset;
 
-        // Draw panel background
-        context.fill(x, y, x + panelWidth, y + panelHeight, HegemoniaDesign.PANEL_BACKGROUND);
-        context.fill(x, y, x + 3, y + panelHeight, HegemoniaDesign.ACCENT_GOLD); // Left border
+        int alpha = (int) (255 * ease);
 
-        // Draw content
-        int contentX = x + padding + 3;
-        int contentY = y + padding;
+        // Calculate total width needed
+        int contentWidth = 0;
 
-        // Balance
-        String balanceText = "§6" + MONEY_FORMAT.format(data.balance) + " §7H";
-        context.drawText(textRenderer, balanceText, contentX, contentY, 0xFFFFFF, true);
-        contentY += lineHeight;
+        String balanceText = MONEY_FORMAT.format(data.balance) + " H";
+        String bankText = MONEY_FORMAT.format(data.bankBalance) + " H";
 
-        // Bank balance
-        String bankText = "§eBank: §f" + MONEY_FORMAT.format(data.bankBalance) + " §7H";
-        context.drawText(textRenderer, bankText, contentX, contentY, 0xFFFFFF, true);
-        contentY += lineHeight;
+        contentWidth += textRenderer.getWidth("$") + 4 + textRenderer.getWidth(balanceText) + 12;
+        contentWidth += textRenderer.getWidth("B") + 4 + textRenderer.getWidth(bankText);
 
-        // Nation info
         if (data.hasNation()) {
-            String nationText = "§b[" + data.nationTag + "] §f" + data.nationName;
-            context.drawText(textRenderer, nationText, contentX, contentY, 0xFFFFFF, true);
-            contentY += lineHeight;
+            String nationTag = "[" + data.nationTag + "]";
+            contentWidth += 16 + textRenderer.getWidth(nationTag);
 
-            String roleText = "§7Rang: §f" + data.nationRole;
-            context.drawText(textRenderer, roleText, contentX, contentY, 0xFFFFFF, true);
-            contentY += lineHeight;
+            if (data.atWar) {
+                contentWidth += 16 + textRenderer.getWidth("GUERRE");
+            }
         }
 
-        // War status
-        if (data.atWar) {
-            String warText = "§c⚔ EN GUERRE: " + data.warTarget;
-            context.drawText(textRenderer, warText, contentX, contentY, 0xFF5555, true);
+        int panelWidth = contentWidth + 20;
+        int panelHeight = 24;
+
+        // Background with gold accent border
+        ctx.fill(x, y, x + panelWidth, y + panelHeight,
+                HegemoniaDesign.withAlpha(HegemoniaDesign.BG_PRIMARY, alpha));
+        ctx.fill(x, y, x + panelWidth, y + 2,
+                HegemoniaDesign.withAlpha(HegemoniaDesign.GOLD, alpha));
+        ctx.fill(x, y, x + 2, y + panelHeight,
+                HegemoniaDesign.withAlpha(HegemoniaDesign.GOLD, alpha));
+
+        // Content
+        int cx = x + 10;
+        int cy = y + 8;
+
+        // === Balance ===
+        // Icon
+        ctx.drawText(textRenderer, "$", cx, cy,
+                HegemoniaDesign.withAlpha(HegemoniaDesign.GOLD, alpha), false);
+        cx += textRenderer.getWidth("$") + 4;
+
+        // Value
+        ctx.drawText(textRenderer, balanceText, cx, cy,
+                HegemoniaDesign.withAlpha(HegemoniaDesign.TEXT_PRIMARY, alpha), false);
+        cx += textRenderer.getWidth(balanceText) + 6;
+
+        // Separator
+        ctx.fill(cx, y + 6, cx + 1, y + panelHeight - 6,
+                HegemoniaDesign.withAlpha(HegemoniaDesign.BORDER_DEFAULT, alpha));
+        cx += 6;
+
+        // === Bank ===
+        ctx.drawText(textRenderer, "B", cx, cy,
+                HegemoniaDesign.withAlpha(HegemoniaDesign.BLUE, alpha), false);
+        cx += textRenderer.getWidth("B") + 4;
+
+        ctx.drawText(textRenderer, bankText, cx, cy,
+                HegemoniaDesign.withAlpha(HegemoniaDesign.TEXT_PRIMARY, alpha), false);
+        cx += textRenderer.getWidth(bankText);
+
+        // === Nation (if has one) ===
+        if (data.hasNation()) {
+            // Separator
+            cx += 6;
+            ctx.fill(cx, y + 6, cx + 1, y + panelHeight - 6,
+                    HegemoniaDesign.withAlpha(HegemoniaDesign.BORDER_DEFAULT, alpha));
+            cx += 10;
+
+            String nationTag = "[" + data.nationTag + "]";
+            ctx.drawText(textRenderer, nationTag, cx, cy,
+                    HegemoniaDesign.withAlpha(HegemoniaDesign.BLUE, alpha), false);
+            cx += textRenderer.getWidth(nationTag);
+
+            // === War status (if at war) ===
+            if (data.atWar) {
+                cx += 6;
+                ctx.fill(cx, y + 6, cx + 1, y + panelHeight - 6,
+                        HegemoniaDesign.withAlpha(HegemoniaDesign.BORDER_DEFAULT, alpha));
+                cx += 10;
+
+                // Pulsing war indicator
+                float pulse = (float) (0.7f + 0.3f * Math.sin(pulseAnim * 3));
+                int warAlpha = (int) (alpha * pulse);
+
+                ctx.drawText(textRenderer, "GUERRE", cx, cy,
+                        HegemoniaDesign.withAlpha(HegemoniaDesign.ERROR, warAlpha), false);
+            }
         }
     }
 
-    private void renderNotifications(DrawContext context, float delta) {
+    /**
+     * Render sliding notifications (right side)
+     */
+    private void renderNotifications(DrawContext ctx, float delta, float ease) {
         if (notifications.isEmpty()) return;
 
         TextRenderer textRenderer = client.textRenderer;
         int screenWidth = client.getWindow().getScaledWidth();
-        int y = 60;
+        int y = 8;
 
         Iterator<Notification> it = notifications.iterator();
         while (it.hasNext()) {
@@ -134,43 +197,62 @@ public class HegemoniaHud {
                 continue;
             }
 
-            int notifWidth = Math.max(
-                    textRenderer.getWidth(notif.title),
-                    textRenderer.getWidth(notif.message)
-            ) + 20;
-            int notifHeight = 40;
-            int x = screenWidth - notifWidth - 10;
+            // Calculate dimensions
+            int titleWidth = textRenderer.getWidth(notif.title);
+            int msgWidth = textRenderer.getWidth(notif.message);
+            int notifWidth = Math.max(titleWidth, msgWidth) + 24;
+            int notifHeight = 36;
 
-            // Animation
-            float slideProgress = notif.getSlideProgress();
+            int x = screenWidth - notifWidth - 8;
+
+            // Slide animation
+            float slideProgress = notif.getSlideProgress() * ease;
             x += (int) ((1f - slideProgress) * (notifWidth + 20));
 
-            // Background color based on type
-            int bgColor = switch (notif.type) {
-                case "success" -> HegemoniaDesign.SUCCESS_DARK;
-                case "error" -> HegemoniaDesign.ERROR_DARK;
-                case "warning" -> HegemoniaDesign.WARNING_DARK;
-                default -> HegemoniaDesign.INFO_DARK;
-            };
+            int alpha = (int) (255 * slideProgress);
 
-            int borderColor = switch (notif.type) {
-                case "success" -> HegemoniaDesign.SUCCESS;
-                case "error" -> HegemoniaDesign.ERROR;
-                case "warning" -> HegemoniaDesign.WARNING;
-                default -> HegemoniaDesign.INFO;
-            };
+            // Colors based on type
+            int bgColor, accentColor;
+            switch (notif.type) {
+                case "success" -> {
+                    bgColor = HegemoniaDesign.SUCCESS_DARK;
+                    accentColor = HegemoniaDesign.SUCCESS;
+                }
+                case "error" -> {
+                    bgColor = HegemoniaDesign.ERROR_DARK;
+                    accentColor = HegemoniaDesign.ERROR;
+                }
+                case "warning" -> {
+                    bgColor = HegemoniaDesign.WARNING_DARK;
+                    accentColor = HegemoniaDesign.WARNING;
+                }
+                default -> {
+                    bgColor = HegemoniaDesign.INFO_DARK;
+                    accentColor = HegemoniaDesign.INFO;
+                }
+            }
 
-            // Draw notification
-            context.fill(x, y, x + notifWidth, y + notifHeight, bgColor);
-            context.fill(x, y, x + 3, y + notifHeight, borderColor);
+            // Background
+            ctx.fill(x, y, x + notifWidth, y + notifHeight,
+                    HegemoniaDesign.withAlpha(bgColor, alpha));
+
+            // Left accent bar
+            ctx.fill(x, y, x + 3, y + notifHeight,
+                    HegemoniaDesign.withAlpha(accentColor, alpha));
+
+            // Top line
+            ctx.fill(x, y, x + notifWidth, y + 1,
+                    HegemoniaDesign.withAlpha(accentColor, alpha));
 
             // Title
-            context.drawText(textRenderer, notif.title, x + 10, y + 6, borderColor, true);
+            ctx.drawText(textRenderer, notif.title, x + 10, y + 6,
+                    HegemoniaDesign.withAlpha(accentColor, alpha), false);
 
             // Message
-            context.drawText(textRenderer, notif.message, x + 10, y + 20, 0xCCCCCC, true);
+            ctx.drawText(textRenderer, notif.message, x + 10, y + 20,
+                    HegemoniaDesign.withAlpha(HegemoniaDesign.TEXT_SECONDARY, alpha), false);
 
-            y += notifHeight + 5;
+            y += notifHeight + 4;
         }
     }
 
@@ -188,12 +270,36 @@ public class HegemoniaHud {
         return visible;
     }
 
+    /**
+     * Show a notification
+     * @param type "success", "error", "warning", or "info"
+     * @param title Notification title
+     * @param message Notification message
+     * @param durationTicks How long to show (20 ticks = 1 second)
+     */
     public void showNotification(String type, String title, String message, int durationTicks) {
         notifications.add(new Notification(type, title, message, durationTicks));
         // Limit to 5 notifications
         while (notifications.size() > 5) {
             notifications.remove(0);
         }
+    }
+
+    // Convenience methods
+    public void notifySuccess(String title, String message) {
+        showNotification("success", title, message, 100);
+    }
+
+    public void notifyError(String title, String message) {
+        showNotification("error", title, message, 100);
+    }
+
+    public void notifyWarning(String title, String message) {
+        showNotification("warning", title, message, 100);
+    }
+
+    public void notifyInfo(String title, String message) {
+        showNotification("info", title, message, 100);
     }
 
     // ==================== Notification Class ====================
@@ -216,7 +322,7 @@ public class HegemoniaHud {
         void update(float delta) {
             age++;
             if (slideIn < 1f) {
-                slideIn = Math.min(1f, slideIn + 0.15f);
+                slideIn = Math.min(1f, slideIn + HegemoniaDesign.ANIM_FAST);
             }
         }
 
@@ -226,10 +332,11 @@ public class HegemoniaHud {
 
         float getSlideProgress() {
             if (age > duration - 20) {
-                // Slide out
-                return Math.max(0f, (duration - age) / 20f);
+                // Slide out during last 20 ticks
+                float progress = (duration - age) / 20f;
+                return Math.max(0f, HegemoniaDesign.easeOut(progress));
             }
-            return slideIn;
+            return HegemoniaDesign.easeOut(slideIn);
         }
     }
 }
