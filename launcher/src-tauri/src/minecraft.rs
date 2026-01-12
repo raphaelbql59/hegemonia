@@ -138,6 +138,42 @@ pub async fn check_installation_status() -> Result<InstallationStatus, String> {
     })
 }
 
+/// Check if hegemonia-client mod needs update by comparing GitHub release commit SHA
+async fn check_hegemonia_client_update(version_file: &PathBuf) -> bool {
+    // Get current cached version
+    let cached_sha = fs::read_to_string(version_file).unwrap_or_default();
+
+    // Fetch latest release info from GitHub
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(5))
+        .build()
+        .unwrap_or_else(|_| reqwest::Client::new());
+
+    match client.get("https://api.github.com/repos/raphaelbql59/hegemonia/releases/tags/client-latest")
+        .header("User-Agent", "Hegemonia-Launcher")
+        .send()
+        .await
+    {
+        Ok(response) => {
+            if let Ok(json) = response.json::<serde_json::Value>().await {
+                // Use target_commitish (commit SHA) as version identifier
+                if let Some(sha) = json.get("target_commitish").and_then(|v| v.as_str()) {
+                    if sha != cached_sha.trim() {
+                        return true; // Update needed
+                    }
+                }
+            }
+            false
+        }
+        Err(_) => false, // If we can't check, don't force update
+    }
+}
+
+/// Save hegemonia-client version after successful download
+fn save_hegemonia_client_version(version_file: &PathBuf, sha: &str) {
+    let _ = fs::write(version_file, sha);
+}
+
 /// Fetch the Hegemonia modpack manifest from API
 #[tauri::command]
 pub async fn fetch_modpack_manifest() -> Result<HegemoniaPack, String> {
@@ -328,8 +364,21 @@ pub async fn install_modpack(window: Window) -> Result<String, String> {
 
         let mod_path = mods_dir.join(&mod_info.file_name);
 
-        // Skip if already exists
-        if mod_path.exists() {
+        // For hegemonia-client, always check for updates (delete and re-download)
+        if mod_info.id == "hegemonia-client" && mod_path.exists() {
+            // Check if we need to update by comparing with cached version
+            let version_check_file = mods_dir.join(".hegemonia-client-version");
+            let should_update = check_hegemonia_client_update(&version_check_file).await;
+
+            if should_update {
+                window.emit("install-status", "Mise à jour du mod Hegemonia...").ok();
+                let _ = fs::remove_file(&mod_path);
+            } else {
+                installed_count += 1;
+                continue;
+            }
+        } else if mod_path.exists() {
+            // Skip other mods if already exists
             installed_count += 1;
             continue;
         }
@@ -343,6 +392,24 @@ pub async fn install_modpack(window: Window) -> Result<String, String> {
         match download_file_with_progress(&window, &mod_url, &mod_path, &mod_info.file_name).await {
             Ok(_) => {
                 installed_count += 1;
+
+                // Save version for hegemonia-client to enable update checking
+                if mod_info.id == "hegemonia-client" {
+                    let version_file = mods_dir.join(".hegemonia-client-version");
+                    // Fetch and save the commit SHA
+                    if let Ok(response) = reqwest::Client::new()
+                        .get("https://api.github.com/repos/raphaelbql59/hegemonia/releases/tags/client-latest")
+                        .header("User-Agent", "Hegemonia-Launcher")
+                        .send()
+                        .await
+                    {
+                        if let Ok(json) = response.json::<serde_json::Value>().await {
+                            if let Some(sha) = json.get("target_commitish").and_then(|v| v.as_str()) {
+                                save_hegemonia_client_version(&version_file, sha);
+                            }
+                        }
+                    }
+                }
             },
             Err(e) => {
                 window.emit("install-warning", &format!("Échec du téléchargement de {}: {}", mod_info.name, e)).ok();

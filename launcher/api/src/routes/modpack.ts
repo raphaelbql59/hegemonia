@@ -34,9 +34,9 @@ const MODPACK_MANIFEST = {
       name: 'Hegemonia Client',
       version: '1.0.0',
       file_name: 'hegemonia-client-1.0.0.jar',
-      url: null, // Served from local API
+      url: 'https://github.com/raphaelbql59/hegemonia/releases/download/client-latest/hegemonia-client-1.0.0.jar',
       sha256: '',
-      size: 105531,
+      size: 0, // Dynamic from GitHub
       required: true,
     },
     {
