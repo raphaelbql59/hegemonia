@@ -39,6 +39,9 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           FILENAME="hegemonia-client-${VERSION}.jar"
           echo "filename=$FILENAME" >> $GITHUB_OUTPUT
+          # Get the exact built jar path
+          JAR_PATH=$(ls client-mod/build/libs/hegemonia-client-${VERSION}.jar)
+          echo "jar_path=$JAR_PATH" >> $GITHUB_OUTPUT
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -47,8 +50,34 @@ jobs:
           path: client-mod/build/libs/hegemonia-client-*.jar
           retention-days: 90
 
-      - name: Create/Update latest release
-        uses: softprops/action-gh-release@v1
+      - name: Delete old release assets
+        run: |
+          # Get existing release
+          RELEASE_ID=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/tags/client-latest" \
+            | jq -r '.id // empty')
+
+          if [ -n "$RELEASE_ID" ]; then
+            echo "Found release ID: $RELEASE_ID"
+
+            # Get all assets and delete them
+            ASSETS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              "https://api.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID/assets" \
+              | jq -r '.[].id')
+
+            for ASSET_ID in $ASSETS; do
+              echo "Deleting asset: $ASSET_ID"
+              curl -X DELETE -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                "https://api.github.com/repos/${{ github.repository }}/releases/assets/$ASSET_ID"
+            done
+
+            echo "All old assets deleted"
+          else
+            echo "No existing release found"
+          fi
+
+      - name: Create/Update release with new assets
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: client-latest
           name: "Client Mod - Latest Build"
@@ -58,20 +87,24 @@ jobs:
             **Version**: ${{ steps.mod_info.outputs.version }}
             **Build**: ${{ github.run_number }}
             **Commit**: ${{ github.sha }}
+            **Date**: ${{ github.event.head_commit.timestamp }}
 
             ## Installation automatique
             Le launcher télécharge automatiquement cette version.
 
             ## Installation manuelle
             Placez le fichier `.jar` dans votre dossier `mods/` Minecraft.
-          files: client-mod/build/libs/hegemonia-client-*.jar
+          files: |
+            client-mod/build/libs/hegemonia-client-${{ steps.mod_info.outputs.version }}.jar
           prerelease: false
           make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Notify build success
+      - name: Verify upload
         run: |
           echo "✅ Client mod v${{ steps.mod_info.outputs.version }} built and released"
           echo "📦 Download: https://github.com/${{ github.repository }}/releases/tag/client-latest"
-
+          echo "🔄 Commit: ${{ github.sha }}"
+          # Show file size for verification
+          ls -la client-mod/build/libs/hegemonia-client-*.jar
