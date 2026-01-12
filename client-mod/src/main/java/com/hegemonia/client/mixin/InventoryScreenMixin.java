@@ -396,7 +396,9 @@ public abstract class InventoryScreenMixin extends AbstractInventoryScreen<Playe
                 }
             }
             case LEADERBOARD -> {
-                // TODO: Leaderboard screen
+                if (client != null) {
+                    client.setScreen(new com.hegemonia.client.gui.screen.LeaderboardScreen());
+                }
             }
         }
     }
