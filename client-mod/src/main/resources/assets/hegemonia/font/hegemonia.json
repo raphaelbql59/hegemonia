@@ -1,0 +1,11 @@
+{
+  "providers": [
+    {
+      "type": "caxton",
+      "regular": "hegemonia:inter-regular.ttf",
+      "bold": "hegemonia:inter-bold.ttf",
+      "shadow_offset": 0.8,
+      "size": 10.0
+    }
+  ]
+}

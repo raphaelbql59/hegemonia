@@ -2,10 +2,14 @@ package com.hegemonia.client.gui.theme;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.text.Style;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
 /**
- * HEGEMONIA DESIGN SYSTEM v2.0
+ * HEGEMONIA DESIGN SYSTEM v3.0
+ *
+ * Now with custom Inter font via Caxton!
  *
  * Modern, futuristic design inspired by Nations Glory
  * Dark theme with gold accents
@@ -24,6 +28,11 @@ public final class HegemoniaDesign {
     public static final Identifier LOGO = Identifier.of("hegemonia", "textures/gui/logo.png");
     public static final Identifier LOGO_LARGE = Identifier.of("hegemonia", "textures/gui/logo_large.png");
     public static final Identifier ICONS = Identifier.of("hegemonia", "textures/gui/icons.png");
+
+    // Custom font (requires Caxton mod)
+    public static final Identifier FONT_HEGEMONIA = Identifier.of("hegemonia", "hegemonia");
+    public static final Style STYLE_HEGEMONIA = Style.EMPTY.withFont(FONT_HEGEMONIA);
+    public static final Style STYLE_HEGEMONIA_BOLD = STYLE_HEGEMONIA.withBold(true);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // GRID SYSTEM (8px base)
@@ -187,6 +196,52 @@ public final class HegemoniaDesign {
     /** Ease in out cubic */
     public static float easeInOut(float t) {
         return t < 0.5f ? 4 * t * t * t : 1 - (float) Math.pow(-2 * t + 2, 3) / 2;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // TEXT RENDERING (with custom Hegemonia font via Caxton)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /** Create styled text with Hegemonia font */
+    public static Text styledText(String text) {
+        return Text.literal(text).setStyle(STYLE_HEGEMONIA);
+    }
+
+    /** Create bold styled text with Hegemonia font */
+    public static Text styledTextBold(String text) {
+        return Text.literal(text).setStyle(STYLE_HEGEMONIA_BOLD);
+    }
+
+    /** Draw text with Hegemonia font */
+    public static void drawText(DrawContext ctx, String text, int x, int y, int color) {
+        var textRenderer = MinecraftClient.getInstance().textRenderer;
+        ctx.drawText(textRenderer, styledText(text), x, y, color, false);
+    }
+
+    /** Draw bold text with Hegemonia font */
+    public static void drawTextBold(DrawContext ctx, String text, int x, int y, int color) {
+        var textRenderer = MinecraftClient.getInstance().textRenderer;
+        ctx.drawText(textRenderer, styledTextBold(text), x, y, color, false);
+    }
+
+    /** Draw text with shadow using Hegemonia font */
+    public static void drawTextWithShadow(DrawContext ctx, String text, int x, int y, int color) {
+        var textRenderer = MinecraftClient.getInstance().textRenderer;
+        ctx.drawText(textRenderer, styledText(text), x, y, color, true);
+    }
+
+    /** Draw centered text with Hegemonia font */
+    public static void drawCenteredText(DrawContext ctx, String text, int centerX, int y, int color) {
+        var textRenderer = MinecraftClient.getInstance().textRenderer;
+        Text styledText = styledText(text);
+        int width = textRenderer.getWidth(styledText);
+        ctx.drawText(textRenderer, styledText, centerX - width / 2, y, color, false);
+    }
+
+    /** Get text width with Hegemonia font */
+    public static int getTextWidth(String text) {
+        var textRenderer = MinecraftClient.getInstance().textRenderer;
+        return textRenderer.getWidth(styledText(text));
     }
 
     /** Smooth step */
