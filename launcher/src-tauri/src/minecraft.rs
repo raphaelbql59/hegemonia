@@ -194,9 +194,9 @@ fn get_fallback_manifest() -> HegemoniaPack {
                 name: "Hegemonia Client".to_string(),
                 version: "1.0.0".to_string(),
                 file_name: "hegemonia-client-1.0.0.jar".to_string(),
-                url: None, // Served from API
+                url: Some("https://github.com/raphaelbql59/hegemonia/releases/download/client-latest/hegemonia-client-1.0.0.jar".to_string()),
                 sha256: String::new(),
-                size: 112130,
+                size: 0, // Size check disabled for GitHub releases
                 required: true,
             },
             ModInfo {

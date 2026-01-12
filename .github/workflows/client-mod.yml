@@ -1,4 +1,4 @@
-name: Build & Deploy Client Mod
+name: Build & Release Client Mod
 
 on:
   push:
@@ -8,8 +8,11 @@ on:
       - '.github/workflows/client-mod.yml'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -29,31 +32,45 @@ jobs:
         working-directory: client-mod
         run: ./gradlew build
 
-      - name: Get mod version
-        id: version
+      - name: Get mod info
+        id: mod_info
         run: |
           VERSION=$(grep "mod_version" client-mod/gradle.properties | cut -d'=' -f2 | tr -d ' ')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+          FILENAME="hegemonia-client-${VERSION}.jar"
+          echo "filename=$FILENAME" >> $GITHUB_OUTPUT
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: hegemonia-client-${{ steps.version.outputs.version }}
+          name: hegemonia-client-${{ steps.mod_info.outputs.version }}
           path: client-mod/build/libs/hegemonia-client-*.jar
-          retention-days: 30
+          retention-days: 90
 
-      - name: Deploy to server
-        uses: appleboy/scp-action@v0.1.7
+      - name: Create/Update latest release
+        uses: softprops/action-gh-release@v1
         with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "client-mod/build/libs/hegemonia-client-*.jar"
-          target: "/home/hegemonia/hegemonia-project/launcher/api/modpack/mods/"
-          strip_components: 3
+          tag_name: client-latest
+          name: "Client Mod - Latest Build"
+          body: |
+            Dernière version du mod client Hegemonia.
 
-      - name: Notify deployment
-        if: success()
+            **Version**: ${{ steps.mod_info.outputs.version }}
+            **Build**: ${{ github.run_number }}
+            **Commit**: ${{ github.sha }}
+
+            ## Installation automatique
+            Le launcher télécharge automatiquement cette version.
+
+            ## Installation manuelle
+            Placez le fichier `.jar` dans votre dossier `mods/` Minecraft.
+          files: client-mod/build/libs/hegemonia-client-*.jar
+          prerelease: false
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Notify build success
         run: |
-          echo "✅ Client mod v${{ steps.version.outputs.version }} deployed successfully"
-          echo "📦 Download: http://${{ secrets.SERVER_HOST }}:3001/api/modpack/mods/hegemonia-client-${{ steps.version.outputs.version }}.jar"
+          echo "✅ Client mod v${{ steps.mod_info.outputs.version }} built and released"
+          echo "📦 Download: https://github.com/${{ github.repository }}/releases/tag/client-latest"
