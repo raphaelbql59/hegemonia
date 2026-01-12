@@ -1,0 +1,44 @@
+# ============================================
+# HEGEMONIA Economy - Configuration
+# ============================================
+
+# Paramètres généraux
+general:
+  # Devise utilisée
+  currency-symbol: "$"
+  currency-name: "Hegemonia Coins"
+  currency-name-plural: "Hegemonia Coins"
+
+  # Solde de départ pour les nouveaux joueurs
+  starting-balance: 1000.0
+
+  # Solde maximum autorisé
+  max-balance: 1000000000.0
+
+# Paramètres du marché
+market:
+  # Activer le marché global
+  enabled: true
+
+  # Taxe sur les transactions (pourcentage)
+  transaction-tax: 0.05
+
+  # Durée des offres en heures
+  offer-duration-hours: 168
+
+  # Nombre maximum d'offres par joueur
+  max-offers-per-player: 20
+
+# Paramètres des banques nationales
+national-bank:
+  # Taux d'intérêt quotidien (pourcentage)
+  daily-interest-rate: 0.001
+
+  # Montant minimum pour les intérêts
+  minimum-for-interest: 10000.0
+
+# Messages
+messages:
+  prefix: "<gold>[Économie]</gold> "
+  insufficient-funds: "<red>Fonds insuffisants!</red>"
+  transaction-success: "<green>Transaction réussie!</green>"

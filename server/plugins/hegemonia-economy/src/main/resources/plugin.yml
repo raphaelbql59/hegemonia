@@ -1,7 +1,7 @@
 name: HegemoniaEconomy
 version: '${version}'
 main: com.hegemonia.economy.HegemoniaEconomy
-api-version: '1.21'
+api-version: '1.20'
 author: Hegemonia Team
 description: Système économique pour Hegemonia - Marchés, commerce et entreprises
 website: https://hegemonia.fr
