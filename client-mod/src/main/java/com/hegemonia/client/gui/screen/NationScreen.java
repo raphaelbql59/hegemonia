@@ -57,38 +57,45 @@ public class NationScreen extends HegemoniaScreen {
         addWidget(new HegemoniaButton(
                 contentX + 15, buttonY,
                 buttonWidth, 35,
-                "🗺 Territoire",
+                "Territoire",
                 HegemoniaButton.ButtonStyle.DEFAULT,
-                btn -> {} // TODO: Territory screen
+                btn -> navigateTo(new TerritoryScreen())
         ));
 
         // Diplomatie button
         addWidget(new HegemoniaButton(
                 contentX + 20 + buttonWidth, buttonY,
                 buttonWidth, 35,
-                "🤝 Diplomatie",
+                "Diplomatie",
                 HegemoniaButton.ButtonStyle.DEFAULT,
-                btn -> {} // TODO: Diplomacy screen
+                btn -> navigateTo(new DiplomacyScreen())
         ));
 
         // Trésor button
         addWidget(new HegemoniaButton(
                 contentX + 25 + buttonWidth * 2, buttonY,
                 buttonWidth, 35,
-                "💰 Trésor",
+                "Tresor",
                 HegemoniaButton.ButtonStyle.DEFAULT,
-                btn -> {} // TODO: Treasury screen
+                btn -> navigateTo(new TreasuryScreen())
         ));
 
         // Leave nation button (bottom, danger)
         addWidget(new HegemoniaButton(
                 contentX + contentWidth - 165, contentY + contentHeight - 50,
                 150, 30,
-                "🚪 Quitter la nation",
+                "Quitter la nation",
                 HegemoniaButton.ButtonStyle.DANGER,
                 btn -> {
-                    // TODO: Confirmation dialog
-                    hegemonia.getNetworkHandler().requestLeaveNation();
+                    if (client != null) {
+                        client.setScreen(ConfirmationDialog.danger(
+                                this,
+                                "Quitter la nation",
+                                "Etes-vous sur de vouloir quitter\nvotre nation? Cette action est irreversible.",
+                                "Quitter",
+                                () -> hegemonia.getNetworkHandler().requestLeaveNation()
+                        ));
+                    }
                 }
         ));
 

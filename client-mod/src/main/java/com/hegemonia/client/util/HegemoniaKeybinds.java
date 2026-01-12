@@ -71,10 +71,15 @@ public class HegemoniaKeybinds {
         // Register tick event to handle key presses
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client.player == null) return;
+            if (client.currentScreen != null) return; // Don't open if screen is already open
 
-            // Check if connected to Hegemonia server
-            if (!HegemoniaClient.getInstance().getPlayerData().isConnectedToHegemonia) {
-                return;
+            // Auto-detect Hegemonia server by checking for server brand or specific conditions
+            // For now, enable menus on any multiplayer server for testing
+            var playerData = HegemoniaClient.getInstance().getPlayerData();
+            if (client.getCurrentServerEntry() != null && !playerData.isConnectedToHegemonia) {
+                // Auto-enable when on multiplayer
+                playerData.isConnectedToHegemonia = true;
+                HegemoniaClient.LOGGER.info("Connected to server, enabling Hegemonia features");
             }
 
             while (OPEN_MAIN_MENU.wasPressed()) {

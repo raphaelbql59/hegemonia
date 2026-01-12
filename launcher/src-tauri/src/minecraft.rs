@@ -5,8 +5,8 @@ use tauri::Window;
 
 const MINECRAFT_VERSION: &str = "1.20.4";
 const FABRIC_VERSION: &str = "0.16.9";
-// API is currently not deployed - use fallback directly
-const HEGEMONIA_API: &str = "http://localhost:3001/api";
+// Hegemonia API - public endpoint
+const HEGEMONIA_API: &str = "http://51.75.31.173:3001/api";
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DownloadProgress {
@@ -194,9 +194,9 @@ fn get_fallback_manifest() -> HegemoniaPack {
                 name: "Hegemonia Client".to_string(),
                 version: "1.0.0".to_string(),
                 file_name: "hegemonia-client-1.0.0.jar".to_string(),
-                url: Some("https://raw.githubusercontent.com/raphaelbql59/hegemonia/master/launcher/api/modpack/mods/hegemonia-client-1.0.0.jar".to_string()),
+                url: None, // Served from API
                 sha256: String::new(),
-                size: 76513,
+                size: 112130,
                 required: true,
             },
             ModInfo {

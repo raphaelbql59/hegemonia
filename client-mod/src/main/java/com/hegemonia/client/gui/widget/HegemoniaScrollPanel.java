@@ -246,6 +246,10 @@ public class HegemoniaScrollPanel extends AbstractWidget {
         return children;
     }
 
+    public int getChildCount() {
+        return children.size();
+    }
+
     public void scrollToTop() {
         targetScrollOffset = 0;
         if (!smoothScrolling) scrollOffset = 0;

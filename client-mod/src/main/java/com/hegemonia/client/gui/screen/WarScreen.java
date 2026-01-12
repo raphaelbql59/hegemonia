@@ -70,9 +70,9 @@ public class WarScreen extends HegemoniaScreen {
         HegemoniaButton declareButton = addWidget(new HegemoniaButton(
                 contentX + 15, buttonY,
                 panelWidth, 40,
-                "⚔ Déclarer la guerre",
+                "Declarer la guerre",
                 HegemoniaButton.ButtonStyle.DANGER,
-                btn -> {} // TODO: War declaration screen
+                btn -> navigateTo(new WarDeclarationScreen())
         ));
 
         // Only leaders/officers can declare war
@@ -84,9 +84,19 @@ public class WarScreen extends HegemoniaScreen {
             addWidget(new HegemoniaButton(
                     contentX + panelWidth + 25, buttonY,
                     panelWidth, 40,
-                    "🏳 Capituler",
+                    "Capituler",
                     HegemoniaButton.ButtonStyle.DEFAULT,
-                    btn -> {} // TODO: Surrender confirmation
+                    btn -> {
+                        if (client != null) {
+                            client.setScreen(ConfirmationDialog.danger(
+                                    this,
+                                    "Capituler",
+                                    "Etes-vous sur de vouloir capituler?\nVous perdrez la guerre et devrez\npayer des reparations.",
+                                    "Capituler",
+                                    () -> hegemonia.getNetworkHandler().requestSurrender()
+                            ));
+                        }
+                    }
             ));
         }
 

@@ -387,4 +387,25 @@ public class HegemoniaTextInput extends AbstractWidget {
         this.validator = validator;
         return this;
     }
+
+    /**
+     * Set to only accept numeric input (digits and decimal point)
+     */
+    public HegemoniaTextInput setNumericOnly(boolean numericOnly) {
+        if (numericOnly) {
+            this.validator = input -> {
+                if (input.isEmpty()) return true;
+                try {
+                    Double.parseDouble(input.replace(",", "."));
+                    return true;
+                } catch (NumberFormatException e) {
+                    // Allow partial input like "." or "-"
+                    return input.matches("^-?[0-9]*\\.?[0-9]*$");
+                }
+            };
+        } else {
+            this.validator = null;
+        }
+        return this;
+    }
 }

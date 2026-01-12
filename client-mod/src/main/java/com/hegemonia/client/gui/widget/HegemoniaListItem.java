@@ -143,6 +143,14 @@ public class HegemoniaListItem extends AbstractWidget {
         return this;
     }
 
+    /**
+     * Convenience method to set onClick with a simple Runnable
+     */
+    public HegemoniaListItem setOnClick(Runnable onClick) {
+        this.onClick = item -> onClick.run();
+        return this;
+    }
+
     public HegemoniaListItem setBackgroundColor(int color) {
         this.backgroundColor = color;
         return this;

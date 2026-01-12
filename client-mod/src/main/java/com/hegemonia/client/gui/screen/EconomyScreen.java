@@ -76,17 +76,17 @@ public class EconomyScreen extends HegemoniaScreen {
         addWidget(new HegemoniaButton(
                 contentX + 25, quickY,
                 buttonWidth, 30,
-                "💸  Transférer de l'argent",
+                "Transferer",
                 HegemoniaButton.ButtonStyle.DEFAULT,
-                btn -> {} // TODO: Transfer screen
+                btn -> navigateTo(new TransferScreen())
         ));
 
         addWidget(new HegemoniaButton(
                 contentX + 35 + panelWidth, quickY,
                 buttonWidth, 30,
-                "📊  Historique",
+                "Historique",
                 HegemoniaButton.ButtonStyle.DEFAULT,
-                btn -> {} // TODO: History screen
+                btn -> navigateTo(new TransactionHistoryScreen())
         ));
 
         // Back button

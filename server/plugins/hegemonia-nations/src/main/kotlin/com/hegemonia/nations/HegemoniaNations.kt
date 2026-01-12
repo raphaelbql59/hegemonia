@@ -113,9 +113,11 @@ class HegemoniaNations : JavaPlugin() {
                 NationTables.NationRelations,
                 NationTables.Territories,
                 NationTables.Players,
+                NationTables.NationInvites,
                 NationTables.Elections,
                 NationTables.ElectionCandidates,
-                NationTables.ElectionVotes
+                NationTables.ElectionVotes,
+                NationTables.NationAuditLog
             )
         }
     }

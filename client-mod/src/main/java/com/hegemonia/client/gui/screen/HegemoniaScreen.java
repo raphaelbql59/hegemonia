@@ -249,6 +249,23 @@ public abstract class HegemoniaScreen extends Screen {
         hegemonia.getScreenManager().openMainMenu();
     }
 
+    /**
+     * Navigate to another screen
+     */
+    protected void navigateTo(HegemoniaScreen screen) {
+        if (client != null) {
+            client.setScreen(screen);
+        }
+    }
+
+    /**
+     * Clear widgets and reinitialize the screen
+     */
+    protected void clearAndInit() {
+        widgets.clear();
+        init();
+    }
+
     @Override
     public boolean shouldPause() {
         return false;

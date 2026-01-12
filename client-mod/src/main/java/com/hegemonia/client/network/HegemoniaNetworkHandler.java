@@ -195,4 +195,74 @@ public class HegemoniaNetworkHandler {
         data.addProperty("quantity", quantity);
         sendAction("market_buy", data);
     }
+
+    // ==================== Territory Methods ====================
+
+    public void requestClaimChunk() {
+        sendAction("claim_chunk", new JsonObject());
+    }
+
+    public void requestUnclaimChunk() {
+        sendAction("unclaim_chunk", new JsonObject());
+    }
+
+    // ==================== War Methods ====================
+
+    public void requestDeclareWar(String targetNation, String warGoal) {
+        JsonObject data = new JsonObject();
+        data.addProperty("targetNation", targetNation);
+        data.addProperty("warGoal", warGoal);
+        sendAction("declare_war_advanced", data);
+    }
+
+    public void requestSurrender() {
+        sendAction("surrender", new JsonObject());
+    }
+
+    // ==================== Treasury Methods ====================
+
+    public void requestTreasuryDeposit(double amount) {
+        JsonObject data = new JsonObject();
+        data.addProperty("amount", amount);
+        sendAction("treasury_deposit", data);
+    }
+
+    public void requestTreasuryWithdraw(double amount) {
+        JsonObject data = new JsonObject();
+        data.addProperty("amount", amount);
+        sendAction("treasury_withdraw", data);
+    }
+
+    // ==================== Transfer Methods ====================
+
+    public void requestTransfer(String recipient, double amount) {
+        JsonObject data = new JsonObject();
+        data.addProperty("recipient", recipient);
+        data.addProperty("amount", amount);
+        sendAction("transfer_money", data);
+    }
+
+    // ==================== Diplomacy Methods ====================
+
+    public void requestNationList() {
+        sendAction("nation_list", new JsonObject());
+    }
+
+    public void requestProposeAlliance(int nationId) {
+        JsonObject data = new JsonObject();
+        data.addProperty("nationId", nationId);
+        sendAction("propose_alliance", data);
+    }
+
+    public void requestDeclareEnemy(int nationId) {
+        JsonObject data = new JsonObject();
+        data.addProperty("nationId", nationId);
+        sendAction("declare_enemy", data);
+    }
+
+    public void requestProposeTrade(int nationId) {
+        JsonObject data = new JsonObject();
+        data.addProperty("nationId", nationId);
+        sendAction("propose_trade", data);
+    }
 }

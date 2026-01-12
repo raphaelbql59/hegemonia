@@ -89,6 +89,7 @@ public final class HegemoniaColors {
     public static final int MONEY_POSITIVE = 0xFF2ECC71;    // Green
     public static final int MONEY_NEGATIVE = 0xFFE74C3C;    // Red
     public static final int MONEY_NEUTRAL = 0xFFD4AF37;     // Gold
+    public static final int GOLD = ACCENT_GOLD;             // Alias for convenience
 
     // ==================== War Colors ====================
 

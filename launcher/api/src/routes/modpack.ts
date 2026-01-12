@@ -1,8 +1,13 @@
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
 
 const router = express.Router();
+
+// ES Module __dirname equivalent
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Mod storage directory - use local modpack folder
 const MODS_DIR = process.env.MODS_DIR || path.join(__dirname, '../../modpack/mods');
@@ -31,7 +36,7 @@ const MODPACK_MANIFEST = {
       file_name: 'hegemonia-client-1.0.0.jar',
       url: null, // Served from local API
       sha256: '',
-      size: 76513,
+      size: 105531,
       required: true,
     },
     {
