@@ -1,6 +1,6 @@
 package com.hegemonia.client.gui.screen;
 
-import com.hegemonia.client.gui.theme.HegemoniaColors;
+import com.hegemonia.client.gui.theme.HegemoniaDesign;
 import com.hegemonia.client.gui.widget.HegemoniaButton;
 import com.hegemonia.client.gui.widget.HegemoniaListItem;
 import com.hegemonia.client.gui.widget.HegemoniaScrollPanel;
@@ -105,7 +105,7 @@ public class TransactionHistoryScreen extends HegemoniaScreen {
                     data[3]
             );
 
-            int amountColor = isIncome ? HegemoniaColors.SUCCESS : HegemoniaColors.ERROR;
+            int amountColor = isIncome ? HegemoniaDesign.SUCCESS : HegemoniaDesign.ERROR;
             item.setRightText(data[0] + " H", amountColor);
             item.setSelectable(false);
             historyPanel.addChild(item);
@@ -129,8 +129,8 @@ public class TransactionHistoryScreen extends HegemoniaScreen {
 
         // Could add summary statistics here
         context.drawText(textRenderer, "Total entrees: +5,350.00 H",
-                contentX + 150, summaryY, HegemoniaColors.SUCCESS, false);
+                contentX + 150, summaryY, HegemoniaDesign.SUCCESS, false);
         context.drawText(textRenderer, "Total sorties: -2,150.00 H",
-                contentX + 350, summaryY, HegemoniaColors.ERROR, false);
+                contentX + 350, summaryY, HegemoniaDesign.ERROR, false);
     }
 }

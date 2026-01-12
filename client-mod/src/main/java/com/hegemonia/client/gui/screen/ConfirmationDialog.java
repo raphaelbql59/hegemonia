@@ -1,6 +1,6 @@
 package com.hegemonia.client.gui.screen;
 
-import com.hegemonia.client.gui.theme.HegemoniaColors;
+import com.hegemonia.client.gui.theme.HegemoniaDesign;
 import com.hegemonia.client.gui.widget.HegemoniaButton;
 import com.hegemonia.client.gui.widget.HegemoniaWidget;
 import net.minecraft.client.gui.DrawContext;
@@ -89,29 +89,29 @@ public class ConfirmationDialog extends Screen {
         context.fill(0, 0, width, height, 0xAA000000);
 
         // Dialog background
-        context.fill(dialogX, dialogY, dialogX + dialogWidth, dialogY + dialogHeight, HegemoniaColors.BACKGROUND_DARK);
+        context.fill(dialogX, dialogY, dialogX + dialogWidth, dialogY + dialogHeight, HegemoniaDesign.BACKGROUND_DARK);
 
         // Dialog border
-        int borderColor = isDangerous ? HegemoniaColors.ERROR : HegemoniaColors.ACCENT_BLUE;
+        int borderColor = isDangerous ? HegemoniaDesign.ERROR : HegemoniaDesign.ACCENT_BLUE;
         context.fill(dialogX, dialogY, dialogX + dialogWidth, dialogY + 2, borderColor);
-        context.fill(dialogX, dialogY + dialogHeight - 1, dialogX + dialogWidth, dialogY + dialogHeight, HegemoniaColors.PANEL_BORDER);
-        context.fill(dialogX, dialogY, dialogX + 1, dialogY + dialogHeight, HegemoniaColors.PANEL_BORDER);
-        context.fill(dialogX + dialogWidth - 1, dialogY, dialogX + dialogWidth, dialogY + dialogHeight, HegemoniaColors.PANEL_BORDER);
+        context.fill(dialogX, dialogY + dialogHeight - 1, dialogX + dialogWidth, dialogY + dialogHeight, HegemoniaDesign.PANEL_BORDER);
+        context.fill(dialogX, dialogY, dialogX + 1, dialogY + dialogHeight, HegemoniaDesign.PANEL_BORDER);
+        context.fill(dialogX + dialogWidth - 1, dialogY, dialogX + dialogWidth, dialogY + dialogHeight, HegemoniaDesign.PANEL_BORDER);
 
         // Header
-        context.fill(dialogX, dialogY, dialogX + dialogWidth, dialogY + 35, HegemoniaColors.PANEL_HEADER);
-        context.fill(dialogX, dialogY + 34, dialogX + dialogWidth, dialogY + 35, HegemoniaColors.PANEL_BORDER);
+        context.fill(dialogX, dialogY, dialogX + dialogWidth, dialogY + 35, HegemoniaDesign.PANEL_HEADER);
+        context.fill(dialogX, dialogY + 34, dialogX + dialogWidth, dialogY + 35, HegemoniaDesign.PANEL_BORDER);
 
         // Title
         String icon = isDangerous ? "⚠ " : "? ";
-        int titleColor = isDangerous ? HegemoniaColors.ERROR : HegemoniaColors.TEXT_PRIMARY;
+        int titleColor = isDangerous ? HegemoniaDesign.ERROR : HegemoniaDesign.TEXT_PRIMARY;
         context.drawText(textRenderer, icon + title, dialogX + 15, dialogY + 12, titleColor, true);
 
         // Message
         int messageY = dialogY + 50;
         String[] lines = message.split("\n");
         for (String line : lines) {
-            context.drawCenteredTextWithShadow(textRenderer, line, dialogX + dialogWidth / 2, messageY, HegemoniaColors.TEXT_SECONDARY);
+            context.drawCenteredTextWithShadow(textRenderer, line, dialogX + dialogWidth / 2, messageY, HegemoniaDesign.TEXT_SECONDARY);
             messageY += 14;
         }
 

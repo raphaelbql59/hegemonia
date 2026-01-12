@@ -1,6 +1,6 @@
 package com.hegemonia.client.gui.screen;
 
-import com.hegemonia.client.gui.theme.HegemoniaColors;
+import com.hegemonia.client.gui.theme.HegemoniaDesign;
 import com.hegemonia.client.gui.widget.HegemoniaButton;
 import com.hegemonia.client.gui.widget.HegemoniaListItem;
 import com.hegemonia.client.gui.widget.HegemoniaScrollPanel;
@@ -101,7 +101,7 @@ public class NationJoinScreen extends HegemoniaScreen {
                     "§7Membres: " + data[2] + " | " + data[3]
             );
 
-            int statusColor = data[3].equals("Ouverte") ? HegemoniaColors.SUCCESS : HegemoniaColors.WARNING;
+            int statusColor = data[3].equals("Ouverte") ? HegemoniaDesign.SUCCESS : HegemoniaDesign.WARNING;
             item.setRightText(data[3], statusColor);
 
             item.setOnClick(btn -> selectNation(item));
@@ -149,6 +149,6 @@ public class NationJoinScreen extends HegemoniaScreen {
         context.drawText(textRenderer, "§7" + infoText,
                 contentX + (contentWidth - infoWidth) / 2,
                 contentY + contentHeight - 30,
-                HegemoniaColors.TEXT_MUTED, false);
+                HegemoniaDesign.TEXT_MUTED, false);
     }
 }

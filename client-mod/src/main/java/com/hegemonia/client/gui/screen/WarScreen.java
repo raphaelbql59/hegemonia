@@ -1,7 +1,7 @@
 package com.hegemonia.client.gui.screen;
 
 import com.hegemonia.client.HegemoniaClient;
-import com.hegemonia.client.gui.theme.HegemoniaColors;
+import com.hegemonia.client.gui.theme.HegemoniaDesign;
 import com.hegemonia.client.gui.widget.HegemoniaButton;
 import com.hegemonia.client.gui.widget.HegemoniaListItem;
 import com.hegemonia.client.gui.widget.HegemoniaPanel;
@@ -129,7 +129,7 @@ public class WarScreen extends HegemoniaScreen {
                     "§c⚔ vs " + data.warTarget,
                     "§7En cours depuis 2 jours"
             );
-            item.setRightText("§cActif", HegemoniaColors.WAR_ACTIVE);
+            item.setRightText("§cActif", HegemoniaDesign.WAR_ACTIVE);
             item.setSelectable(false);
             activeWarsPanel.addChild(item);
         } else {
@@ -156,9 +156,9 @@ public class WarScreen extends HegemoniaScreen {
 
         for (String[] data : history) {
             int resultColor = switch (data[1]) {
-                case "Victoire" -> HegemoniaColors.SUCCESS;
-                case "Défaite" -> HegemoniaColors.ERROR;
-                default -> HegemoniaColors.WARNING;
+                case "Victoire" -> HegemoniaDesign.SUCCESS;
+                case "Défaite" -> HegemoniaDesign.ERROR;
+                default -> HegemoniaDesign.WARNING;
             };
 
             HegemoniaListItem item = new HegemoniaListItem(

@@ -1,6 +1,6 @@
 package com.hegemonia.client.gui.screen;
 
-import com.hegemonia.client.gui.theme.HegemoniaColors;
+import com.hegemonia.client.gui.theme.HegemoniaDesign;
 import com.hegemonia.client.gui.widget.HegemoniaButton;
 import com.hegemonia.client.gui.widget.HegemoniaListItem;
 import com.hegemonia.client.gui.widget.HegemoniaPanel;
@@ -104,10 +104,10 @@ public class TreasuryScreen extends HegemoniaScreen {
             );
 
             int amountColor = data[3].equals("income") || data[3].equals("deposit")
-                    ? HegemoniaColors.SUCCESS
-                    : HegemoniaColors.ERROR;
+                    ? HegemoniaDesign.SUCCESS
+                    : HegemoniaDesign.ERROR;
 
-            item.setRightText(data[2], HegemoniaColors.TEXT_MUTED);
+            item.setRightText(data[2], HegemoniaDesign.TEXT_MUTED);
             item.setSelectable(false);
             transactionsPanel.addChild(item);
         }
@@ -152,30 +152,30 @@ public class TreasuryScreen extends HegemoniaScreen {
         int col3 = contentX + 370;
 
         // Current balance
-        context.drawText(textRenderer, "Solde:", col1, balanceY, HegemoniaColors.TEXT_MUTED, false);
+        context.drawText(textRenderer, "Solde:", col1, balanceY, HegemoniaDesign.TEXT_MUTED, false);
         String balanceStr = String.format("%,.0f H", nationBalance);
-        context.drawText(textRenderer, balanceStr, col1 + 45, balanceY, HegemoniaColors.GOLD, true);
+        context.drawText(textRenderer, balanceStr, col1 + 45, balanceY, HegemoniaDesign.GOLD, true);
 
         // Daily income
-        context.drawText(textRenderer, "Revenus/j:", col2, balanceY, HegemoniaColors.TEXT_MUTED, false);
+        context.drawText(textRenderer, "Revenus/j:", col2, balanceY, HegemoniaDesign.TEXT_MUTED, false);
         String incomeStr = String.format("+%,.0f H", dailyIncome);
-        context.drawText(textRenderer, incomeStr, col2 + 60, balanceY, HegemoniaColors.SUCCESS, false);
+        context.drawText(textRenderer, incomeStr, col2 + 60, balanceY, HegemoniaDesign.SUCCESS, false);
 
         // Daily expenses
-        context.drawText(textRenderer, "Depenses/j:", col3, balanceY, HegemoniaColors.TEXT_MUTED, false);
+        context.drawText(textRenderer, "Depenses/j:", col3, balanceY, HegemoniaDesign.TEXT_MUTED, false);
         String expenseStr = String.format("-%,.0f H", dailyExpenses);
-        context.drawText(textRenderer, expenseStr, col3 + 70, balanceY, HegemoniaColors.ERROR, false);
+        context.drawText(textRenderer, expenseStr, col3 + 70, balanceY, HegemoniaDesign.ERROR, false);
 
         // Net income
         double netIncome = dailyIncome - dailyExpenses;
         int netY = balanceY + 20;
-        context.drawText(textRenderer, "Net:", col1, netY, HegemoniaColors.TEXT_MUTED, false);
+        context.drawText(textRenderer, "Net:", col1, netY, HegemoniaDesign.TEXT_MUTED, false);
         String netStr = String.format("%+,.0f H/jour", netIncome);
-        int netColor = netIncome >= 0 ? HegemoniaColors.SUCCESS : HegemoniaColors.ERROR;
+        int netColor = netIncome >= 0 ? HegemoniaDesign.SUCCESS : HegemoniaDesign.ERROR;
         context.drawText(textRenderer, netStr, col1 + 30, netY, netColor, false);
 
         // Section header for transactions
         context.drawText(textRenderer, "Historique des transactions",
-                contentX + 20, contentY + 178, HegemoniaColors.TEXT_MUTED, false);
+                contentX + 20, contentY + 178, HegemoniaDesign.TEXT_MUTED, false);
     }
 }

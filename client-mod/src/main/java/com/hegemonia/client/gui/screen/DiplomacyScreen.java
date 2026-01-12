@@ -1,6 +1,6 @@
 package com.hegemonia.client.gui.screen;
 
-import com.hegemonia.client.gui.theme.HegemoniaColors;
+import com.hegemonia.client.gui.theme.HegemoniaDesign;
 import com.hegemonia.client.gui.widget.HegemoniaButton;
 import com.hegemonia.client.gui.widget.HegemoniaListItem;
 import com.hegemonia.client.gui.widget.HegemoniaPanel;
@@ -107,10 +107,10 @@ public class DiplomacyScreen extends HegemoniaScreen {
                     data[0]
             );
             int relationColor = switch (data[1]) {
-                case "ALLY" -> HegemoniaColors.SUCCESS;
-                case "ENEMY" -> HegemoniaColors.ERROR;
-                case "TRADE_PARTNER" -> HegemoniaColors.GOLD;
-                default -> HegemoniaColors.TEXT_MUTED;
+                case "ALLY" -> HegemoniaDesign.SUCCESS;
+                case "ENEMY" -> HegemoniaDesign.ERROR;
+                case "TRADE_PARTNER" -> HegemoniaDesign.GOLD;
+                default -> HegemoniaDesign.TEXT_MUTED;
             };
             String icon = switch (data[1]) {
                 case "ALLY" -> "🤝 ";
@@ -150,7 +150,7 @@ public class DiplomacyScreen extends HegemoniaScreen {
                     data[0]
             );
             String statusIcon = data[2].equals("Recue") ? "📩" : "📤";
-            item.setRightText(statusIcon + " " + data[2], HegemoniaColors.WARNING);
+            item.setRightText(statusIcon + " " + data[2], HegemoniaDesign.WARNING);
             item.setSelectable(true);
 
             if (data[2].equals("Recue")) {
@@ -189,19 +189,19 @@ public class DiplomacyScreen extends HegemoniaScreen {
 
         // Section headers
         context.drawText(textRenderer, "Relations actuelles",
-                contentX + 20, contentY + 48, HegemoniaColors.TEXT_PRIMARY, false);
+                contentX + 20, contentY + 48, HegemoniaDesign.TEXT_PRIMARY, false);
 
         context.drawText(textRenderer, "Propositions en attente",
-                contentX + panelWidth + 35, contentY + 48, HegemoniaColors.TEXT_PRIMARY, false);
+                contentX + panelWidth + 35, contentY + 48, HegemoniaDesign.TEXT_PRIMARY, false);
 
         // Legend at bottom
         int legendY = contentY + 350;
         int legendX = contentX + 20;
         int spacing = 100;
 
-        context.drawText(textRenderer, "🤝 Allie", legendX, legendY, HegemoniaColors.SUCCESS, false);
-        context.drawText(textRenderer, "💰 Partenaire", legendX + spacing, legendY, HegemoniaColors.GOLD, false);
-        context.drawText(textRenderer, "⚔ Ennemi", legendX + spacing * 2, legendY, HegemoniaColors.ERROR, false);
-        context.drawText(textRenderer, "○ Neutre", legendX + spacing * 3, legendY, HegemoniaColors.TEXT_MUTED, false);
+        context.drawText(textRenderer, "🤝 Allie", legendX, legendY, HegemoniaDesign.SUCCESS, false);
+        context.drawText(textRenderer, "💰 Partenaire", legendX + spacing, legendY, HegemoniaDesign.GOLD, false);
+        context.drawText(textRenderer, "⚔ Ennemi", legendX + spacing * 2, legendY, HegemoniaDesign.ERROR, false);
+        context.drawText(textRenderer, "○ Neutre", legendX + spacing * 3, legendY, HegemoniaDesign.TEXT_MUTED, false);
     }
 }

@@ -1,6 +1,6 @@
 package com.hegemonia.client.gui.screen;
 
-import com.hegemonia.client.gui.theme.HegemoniaColors;
+import com.hegemonia.client.gui.theme.HegemoniaDesign;
 import com.hegemonia.client.gui.widget.HegemoniaButton;
 import com.hegemonia.client.gui.widget.HegemoniaListItem;
 import com.hegemonia.client.gui.widget.HegemoniaScrollPanel;
@@ -140,7 +140,7 @@ public class MarketScreen extends HegemoniaScreen {
                     0, 0, itemWidth, 45,
                     data[0], "§7" + data[1] + " - Vendeur: §f" + data[3]
             );
-            item.setRightText(data[2], HegemoniaColors.MONEY_NEUTRAL);
+            item.setRightText(data[2], HegemoniaDesign.MONEY_NEUTRAL);
             item.setOnClick(btn -> {
                 // TODO: Open purchase dialog
             });
@@ -152,10 +152,10 @@ public class MarketScreen extends HegemoniaScreen {
     protected void renderContent(DrawContext context, int mouseX, int mouseY, float delta) {
         // Category header
         int sidebarWidth = 150;
-        context.drawText(textRenderer, "§7Catégories", contentX + 15, contentY + 35, HegemoniaColors.TEXT_MUTED, false);
+        context.drawText(textRenderer, "§7Catégories", contentX + 15, contentY + 35, HegemoniaDesign.TEXT_MUTED, false);
 
         // Items header
         context.drawText(textRenderer, "§7Annonces - " + getCategoryName(selectedCategory),
-                contentX + sidebarWidth + 25, contentY + 35, HegemoniaColors.TEXT_MUTED, false);
+                contentX + sidebarWidth + 25, contentY + 35, HegemoniaDesign.TEXT_MUTED, false);
     }
 }

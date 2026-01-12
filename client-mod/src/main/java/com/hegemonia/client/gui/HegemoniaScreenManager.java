@@ -2,7 +2,6 @@ package com.hegemonia.client.gui;
 
 import com.hegemonia.client.HegemoniaClient;
 import com.hegemonia.client.gui.screen.*;
-import com.hegemonia.client.gui.screens.MainMenu;
 import net.minecraft.client.MinecraftClient;
 
 /**
@@ -21,7 +20,7 @@ public class HegemoniaScreenManager {
      */
     public void openMainMenu() {
         if (!isConnected()) return;
-        client.setScreen(new MainMenu());
+        client.setScreen(new MainMenuScreen());
     }
 
     /**

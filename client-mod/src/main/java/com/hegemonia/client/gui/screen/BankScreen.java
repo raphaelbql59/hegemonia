@@ -1,7 +1,7 @@
 package com.hegemonia.client.gui.screen;
 
 import com.hegemonia.client.HegemoniaClient;
-import com.hegemonia.client.gui.theme.HegemoniaColors;
+import com.hegemonia.client.gui.theme.HegemoniaDesign;
 import com.hegemonia.client.gui.widget.HegemoniaButton;
 import com.hegemonia.client.gui.widget.HegemoniaTextInput;
 import net.minecraft.client.gui.DrawContext;
@@ -149,20 +149,20 @@ public class BankScreen extends HegemoniaScreen {
         int centerX = contentX + contentWidth / 2;
 
         // Current balances
-        context.fill(contentX + 20, contentY + 50, contentX + contentWidth - 20, contentY + 120, HegemoniaColors.BACKGROUND_LIGHT);
+        context.fill(contentX + 20, contentY + 50, contentX + contentWidth - 20, contentY + 120, HegemoniaDesign.BACKGROUND_LIGHT);
 
         // Wallet
         String walletLabel = "Portefeuille:";
         String walletAmount = MONEY_FORMAT.format(data.balance) + " H";
-        context.drawText(textRenderer, walletLabel, contentX + 35, contentY + 60, HegemoniaColors.TEXT_SECONDARY, true);
-        context.drawText(textRenderer, "§6" + walletAmount, contentX + 35, contentY + 75, HegemoniaColors.MONEY_NEUTRAL, true);
+        context.drawText(textRenderer, walletLabel, contentX + 35, contentY + 60, HegemoniaDesign.TEXT_SECONDARY, true);
+        context.drawText(textRenderer, "§6" + walletAmount, contentX + 35, contentY + 75, HegemoniaDesign.MONEY_NEUTRAL, true);
 
         // Bank
         String bankLabel = "En banque:";
         String bankAmount = MONEY_FORMAT.format(data.bankBalance) + " H";
         int bankX = centerX + 20;
-        context.drawText(textRenderer, bankLabel, bankX, contentY + 60, HegemoniaColors.TEXT_SECONDARY, true);
-        context.drawText(textRenderer, "§e" + bankAmount, bankX, contentY + 75, HegemoniaColors.MONEY_NEUTRAL, true);
+        context.drawText(textRenderer, bankLabel, bankX, contentY + 60, HegemoniaDesign.TEXT_SECONDARY, true);
+        context.drawText(textRenderer, "§e" + bankAmount, bankX, contentY + 75, HegemoniaDesign.MONEY_NEUTRAL, true);
 
         // Interest rate info
         String interestText = "§7Intérêts: §a+0.5% §7par jour";
@@ -172,7 +172,7 @@ public class BankScreen extends HegemoniaScreen {
         // Error message
         if (errorMessage != null) {
             int errorWidth = textRenderer.getWidth(errorMessage);
-            context.drawText(textRenderer, "§c" + errorMessage, centerX - errorWidth / 2, contentY + 280, HegemoniaColors.ERROR, true);
+            context.drawText(textRenderer, "§c" + errorMessage, centerX - errorWidth / 2, contentY + 280, HegemoniaDesign.ERROR, true);
         }
     }
 }

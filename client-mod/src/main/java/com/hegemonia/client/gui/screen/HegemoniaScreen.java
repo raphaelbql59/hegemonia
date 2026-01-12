@@ -1,8 +1,7 @@
 package com.hegemonia.client.gui.screen;
 
 import com.hegemonia.client.HegemoniaClient;
-import com.hegemonia.client.gui.theme.HegemoniaColors;
-import com.hegemonia.client.gui.widget.HegemoniaButton;
+import com.hegemonia.client.gui.theme.HegemoniaDesign;
 import com.hegemonia.client.gui.widget.HegemoniaWidget;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
@@ -13,28 +12,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Base screen class for all Hegemonia screens
+ * HEGEMONIA BASE SCREEN
+ * Ultra-modern base class for all Hegemonia screens
+ * Uses the unified HegemoniaDesign system
  */
 public abstract class HegemoniaScreen extends Screen {
 
-    protected final List<HegemoniaWidget> widgets = new ArrayList<>();
     protected final HegemoniaClient hegemonia;
+    protected final List<HegemoniaWidget> widgets = new ArrayList<>();
 
-    // Screen dimensions (calculated on init)
+    // Screen dimensions
     protected int screenWidth;
     protected int screenHeight;
 
-    // Content area (centered panel)
-    protected int contentX;
-    protected int contentY;
-    protected int contentWidth;
-    protected int contentHeight;
+    // Content panel dimensions
+    protected int panelX, panelY, panelWidth, panelHeight;
+    protected int contentX, contentY, contentWidth, contentHeight;
 
-    // Background blur animation
-    protected float openProgress = 0f;
-
-    // Close button
-    protected HegemoniaButton closeButton;
+    // Animation
+    protected float openAnim = 0f;
+    protected boolean closeButtonHovered = false;
 
     public HegemoniaScreen(String title) {
         super(Text.literal(title));
@@ -49,120 +46,213 @@ public abstract class HegemoniaScreen extends Screen {
         screenWidth = width;
         screenHeight = height;
 
-        // Default content area (can be overridden)
+        // Calculate panel dimensions (can be overridden)
+        calculatePanelSize();
+        // Backward compatibility
         calculateContentArea();
 
-        // Add close button
-        closeButton = new HegemoniaButton(
-                contentX + contentWidth - 24, contentY + 4,
-                20, 20, "✕",
-                HegemoniaButton.ButtonStyle.GHOST,
-                btn -> close()
-        );
-        widgets.add(closeButton);
+        // Content area inside panel
+        contentX = panelX + HegemoniaDesign.SPACE_LG;
+        contentY = panelY + HegemoniaDesign.HEADER_HEIGHT + HegemoniaDesign.SPACE_MD;
+        contentWidth = panelWidth - HegemoniaDesign.SPACE_LG * 2;
+        contentHeight = panelHeight - HegemoniaDesign.HEADER_HEIGHT - HegemoniaDesign.FOOTER_HEIGHT - HegemoniaDesign.SPACE_MD * 2;
 
-        // Initialize screen content
+        // Initialize subclass content
         initContent();
     }
 
     /**
-     * Calculate the content area dimensions
-     * Override to customize
+     * Calculate the panel dimensions
+     * Override to customize panel size
+     */
+    protected void calculatePanelSize() {
+        panelWidth = Math.min(500, (int)(screenWidth * 0.8));
+        panelHeight = Math.min(400, (int)(screenHeight * 0.8));
+        panelX = (screenWidth - panelWidth) / 2;
+        panelY = (screenHeight - panelHeight) / 2;
+    }
+
+    /**
+     * Legacy method for backward compatibility
+     * Override this OR calculatePanelSize()
      */
     protected void calculateContentArea() {
-        // Default: 70% of screen, centered
-        contentWidth = (int) (screenWidth * 0.7);
-        contentHeight = (int) (screenHeight * 0.8);
-        contentX = (screenWidth - contentWidth) / 2;
-        contentY = (screenHeight - contentHeight) / 2;
+        // Override in subclasses if needed
     }
 
     /**
      * Initialize screen content
-     * Override this to add widgets
+     * Override this in subclasses
      */
     protected abstract void initContent();
 
-    @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        // Update open animation
-        openProgress = Math.min(1f, openProgress + 0.1f);
-
-        // Render dimmed background
-        renderBackground(context, mouseX, mouseY, delta);
-
-        // Render main panel with animation
-        float scale = 0.9f + 0.1f * openProgress;
-        int alpha = (int) (255 * openProgress);
-
-        // Main panel background
-        int panelColor = HegemoniaColors.withAlpha(HegemoniaColors.BACKGROUND_DARK, (int) (224 * openProgress));
-        context.fill(contentX, contentY, contentX + contentWidth, contentY + contentHeight, panelColor);
-
-        // Panel border with gold accent
-        int borderAlpha = (int) (255 * openProgress);
-        int borderColor = HegemoniaColors.withAlpha(HegemoniaColors.PANEL_BORDER, borderAlpha);
-        int accentColor = HegemoniaColors.withAlpha(HegemoniaColors.ACCENT_GOLD, borderAlpha);
-
-        // Borders
-        context.fill(contentX, contentY, contentX + contentWidth, contentY + 1, accentColor); // Top (gold)
-        context.fill(contentX, contentY + contentHeight - 1, contentX + contentWidth, contentY + contentHeight, borderColor);
-        context.fill(contentX, contentY, contentX + 1, contentY + contentHeight, borderColor);
-        context.fill(contentX + contentWidth - 1, contentY, contentX + contentWidth, contentY + contentHeight, borderColor);
-
-        // Render header
-        renderHeader(context, mouseX, mouseY, delta);
-
-        // Render all widgets
-        for (HegemoniaWidget widget : widgets) {
-            widget.render(context, mouseX, mouseY, delta);
-        }
-
-        // Render screen-specific content
-        renderContent(context, mouseX, mouseY, delta);
+    /**
+     * Add a widget to the screen
+     */
+    protected <T extends HegemoniaWidget> T addWidget(T widget) {
+        widgets.add(widget);
+        return widget;
     }
 
     @Override
-    public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
-        // Semi-transparent dark overlay
-        int bgAlpha = (int) (180 * openProgress);
-        context.fill(0, 0, screenWidth, screenHeight, HegemoniaColors.withAlpha(0x000000, bgAlpha));
+    public void render(DrawContext ctx, int mouseX, int mouseY, float delta) {
+        // Update animation
+        openAnim = Math.min(1f, openAnim + HegemoniaDesign.ANIM_SPEED_FAST);
+        float eased = HegemoniaDesign.easeOut(openAnim);
+
+        int alpha = (int)(255 * eased);
+
+        // ═══════════════════════════════════════════════════════════════
+        // OVERLAY BACKGROUND
+        // ═══════════════════════════════════════════════════════════════
+        int overlayAlpha = (int)(230 * eased);
+        ctx.fill(0, 0, screenWidth, screenHeight, HegemoniaDesign.withAlpha(0x000000, overlayAlpha));
+
+        // ═══════════════════════════════════════════════════════════════
+        // MAIN PANEL
+        // ═══════════════════════════════════════════════════════════════
+        ctx.fill(panelX, panelY, panelX + panelWidth, panelY + panelHeight,
+                HegemoniaDesign.withAlpha(HegemoniaDesign.BG_PANEL, alpha));
+
+        // Panel border with gold accent
+        HegemoniaDesign.drawPanelBorder(ctx, panelX, panelY, panelWidth, panelHeight,
+                HegemoniaDesign.withAlpha(HegemoniaDesign.BORDER_DEFAULT, alpha),
+                HegemoniaDesign.withAlpha(HegemoniaDesign.GOLD, alpha));
+
+        // ═══════════════════════════════════════════════════════════════
+        // HEADER
+        // ═══════════════════════════════════════════════════════════════
+        renderHeader(ctx, mouseX, mouseY, eased);
+
+        // ═══════════════════════════════════════════════════════════════
+        // CONTENT (subclass)
+        // ═══════════════════════════════════════════════════════════════
+        renderContent(ctx, mouseX, mouseY, delta);
+
+        // ═══════════════════════════════════════════════════════════════
+        // WIDGETS
+        // ═══════════════════════════════════════════════════════════════
+        for (HegemoniaWidget widget : widgets) {
+            widget.render(ctx, mouseX, mouseY, delta);
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // FOOTER
+        // ═══════════════════════════════════════════════════════════════
+        renderFooter(ctx, mouseX, mouseY, eased);
     }
 
     /**
-     * Render the screen header
+     * Render the header with title, back button, and close button
      */
-    protected void renderHeader(DrawContext context, int mouseX, int mouseY, float delta) {
+    protected void renderHeader(DrawContext ctx, int mouseX, int mouseY, float anim) {
+        int alpha = (int)(255 * anim);
+
         // Header background
-        context.fill(contentX, contentY, contentX + contentWidth, contentY + 30, HegemoniaColors.PANEL_HEADER);
+        ctx.fill(panelX + 1, panelY + 2, panelX + panelWidth - 1, panelY + HegemoniaDesign.HEADER_HEIGHT,
+                HegemoniaDesign.withAlpha(HegemoniaDesign.BG_PANEL_HEADER, alpha));
+
+        // Header divider
+        ctx.fill(panelX + 1, panelY + HegemoniaDesign.HEADER_HEIGHT - 1,
+                panelX + panelWidth - 1, panelY + HegemoniaDesign.HEADER_HEIGHT,
+                HegemoniaDesign.withAlpha(HegemoniaDesign.BORDER_SUBTLE, alpha));
+
+        // Back button (if not main menu)
+        int backBtnX = panelX + HegemoniaDesign.SPACE_SM;
+        int backBtnY = panelY + (HegemoniaDesign.HEADER_HEIGHT - 24) / 2;
+        boolean backHovered = mouseX >= backBtnX && mouseX < backBtnX + 24 &&
+                mouseY >= backBtnY && mouseY < backBtnY + 24;
+
+        int backBg = backHovered ? HegemoniaDesign.BG_BUTTON_HOVER : 0;
+        if (backBg != 0) {
+            ctx.fill(backBtnX, backBtnY, backBtnX + 24, backBtnY + 24,
+                    HegemoniaDesign.withAlpha(backBg, alpha));
+        }
+        ctx.drawText(textRenderer, "<",
+                backBtnX + 8, backBtnY + 8,
+                HegemoniaDesign.withAlpha(backHovered ? HegemoniaDesign.TEXT_PRIMARY : HegemoniaDesign.TEXT_MUTED, alpha), false);
 
         // Title
         String titleText = getTitle().getString();
-        context.drawText(textRenderer, titleText, contentX + 12, contentY + 10, HegemoniaColors.TEXT_TITLE, true);
+        int titleX = backBtnX + 32;
+        ctx.drawText(textRenderer, titleText,
+                titleX, panelY + (HegemoniaDesign.HEADER_HEIGHT - 8) / 2,
+                HegemoniaDesign.withAlpha(HegemoniaDesign.GOLD, alpha), true);
 
-        // Header bottom border
-        context.fill(contentX, contentY + 29, contentX + contentWidth, contentY + 30, HegemoniaColors.PANEL_BORDER);
+        // Close button
+        int closeBtnX = panelX + panelWidth - 32;
+        int closeBtnY = panelY + (HegemoniaDesign.HEADER_HEIGHT - 24) / 2;
+        closeButtonHovered = mouseX >= closeBtnX && mouseX < closeBtnX + 24 &&
+                mouseY >= closeBtnY && mouseY < closeBtnY + 24;
+
+        int closeBg = closeButtonHovered ? HegemoniaDesign.withAlpha(HegemoniaDesign.ERROR, 60) : 0;
+        if (closeBg != 0) {
+            ctx.fill(closeBtnX, closeBtnY, closeBtnX + 24, closeBtnY + 24, closeBg);
+        }
+        ctx.drawCenteredTextWithShadow(textRenderer, "X",
+                closeBtnX + 12, closeBtnY + 8,
+                closeButtonHovered ? HegemoniaDesign.ERROR_LIGHT : HegemoniaDesign.TEXT_MUTED);
     }
 
     /**
-     * Render screen-specific content
-     * Override this to add custom rendering
+     * Render screen content
+     * Override in subclasses
      */
-    protected void renderContent(DrawContext context, int mouseX, int mouseY, float delta) {
+    protected void renderContent(DrawContext ctx, int mouseX, int mouseY, float delta) {
         // Override in subclasses
+    }
+
+    /**
+     * Render the footer
+     */
+    protected void renderFooter(DrawContext ctx, int mouseX, int mouseY, float anim) {
+        int alpha = (int)(255 * anim);
+        int footerY = panelY + panelHeight - HegemoniaDesign.FOOTER_HEIGHT;
+
+        // Footer divider
+        ctx.fill(panelX + 1, footerY, panelX + panelWidth - 1, footerY + 1,
+                HegemoniaDesign.withAlpha(HegemoniaDesign.BORDER_SUBTLE, alpha));
+
+        // Version
+        String version = "v1.0.0";
+        ctx.drawText(textRenderer, version,
+                panelX + panelWidth - textRenderer.getWidth(version) - HegemoniaDesign.SPACE_MD,
+                footerY + (HegemoniaDesign.FOOTER_HEIGHT - 8) / 2,
+                HegemoniaDesign.withAlpha(HegemoniaDesign.TEXT_MUTED, alpha), false);
     }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        // Check widgets in reverse order (top to bottom)
+        // Check widgets first
         for (int i = widgets.size() - 1; i >= 0; i--) {
             if (widgets.get(i).mouseClicked(mouseX, mouseY, button)) {
                 return true;
             }
         }
 
-        // Click outside content area closes screen
-        if (button == 0 && !isInContentArea(mouseX, mouseY)) {
+        if (button != 0) return super.mouseClicked(mouseX, mouseY, button);
+
+        // Back button
+        int backBtnX = panelX + HegemoniaDesign.SPACE_SM;
+        int backBtnY = panelY + (HegemoniaDesign.HEADER_HEIGHT - 24) / 2;
+        if (mouseX >= backBtnX && mouseX < backBtnX + 24 &&
+                mouseY >= backBtnY && mouseY < backBtnY + 24) {
+            goBack();
+            return true;
+        }
+
+        // Close button
+        int closeBtnX = panelX + panelWidth - 32;
+        int closeBtnY = panelY + (HegemoniaDesign.HEADER_HEIGHT - 24) / 2;
+        if (mouseX >= closeBtnX && mouseX < closeBtnX + 24 &&
+                mouseY >= closeBtnY && mouseY < closeBtnY + 24) {
+            close();
+            return true;
+        }
+
+        // Click outside panel closes
+        if (mouseX < panelX || mouseX >= panelX + panelWidth ||
+                mouseY < panelY || mouseY >= panelY + panelHeight) {
             close();
             return true;
         }
@@ -200,19 +290,16 @@ public abstract class HegemoniaScreen extends Screen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        // Escape closes screen
         if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
             close();
             return true;
         }
-
         // Let widgets handle key presses
         for (HegemoniaWidget widget : widgets) {
             if (widget.keyPressed(keyCode, scanCode, modifiers)) {
                 return true;
             }
         }
-
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
@@ -224,22 +311,6 @@ public abstract class HegemoniaScreen extends Screen {
             }
         }
         return super.charTyped(chr, modifiers);
-    }
-
-    /**
-     * Check if point is within content area
-     */
-    protected boolean isInContentArea(double x, double y) {
-        return x >= contentX && x < contentX + contentWidth &&
-                y >= contentY && y < contentY + contentHeight;
-    }
-
-    /**
-     * Add a widget to the screen
-     */
-    protected <T extends HegemoniaWidget> T addWidget(T widget) {
-        widgets.add(widget);
-        return widget;
     }
 
     /**
@@ -256,14 +327,6 @@ public abstract class HegemoniaScreen extends Screen {
         if (client != null) {
             client.setScreen(screen);
         }
-    }
-
-    /**
-     * Clear widgets and reinitialize the screen
-     */
-    protected void clearAndInit() {
-        widgets.clear();
-        init();
     }
 
     @Override

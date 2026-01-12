@@ -1,6 +1,6 @@
 package com.hegemonia.client.gui.widget;
 
-import com.hegemonia.client.gui.theme.HegemoniaColors;
+import com.hegemonia.client.gui.theme.HegemoniaDesign;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import org.lwjgl.glfw.GLFW;
@@ -43,12 +43,12 @@ public class HegemoniaTextInput extends AbstractWidget {
         updateAnimations();
 
         // Background
-        context.fill(x, y, x + width, y + height, HegemoniaColors.INPUT_BACKGROUND);
+        context.fill(x, y, x + width, y + height, HegemoniaDesign.INPUT_BACKGROUND);
 
         // Border with focus effect
         int borderColor = focused ?
-                HegemoniaColors.lerp(HegemoniaColors.INPUT_BORDER, HegemoniaColors.INPUT_BORDER_FOCUS, focusProgress) :
-                HegemoniaColors.INPUT_BORDER;
+                HegemoniaDesign.lerp(HegemoniaDesign.INPUT_BORDER, HegemoniaDesign.INPUT_BORDER_FOCUS, focusProgress) :
+                HegemoniaDesign.INPUT_BORDER;
         drawBorder(context, borderColor);
 
         // Calculate text area
@@ -61,7 +61,7 @@ public class HegemoniaTextInput extends AbstractWidget {
 
         // Draw text or placeholder
         if (text.isEmpty() && !focused) {
-            context.drawText(textRenderer, placeholder, textX, textY, HegemoniaColors.INPUT_PLACEHOLDER, false);
+            context.drawText(textRenderer, placeholder, textX, textY, HegemoniaDesign.INPUT_PLACEHOLDER, false);
         } else {
             String displayText = text;
             int displayOffset = textX - scrollOffset;
@@ -72,16 +72,16 @@ public class HegemoniaTextInput extends AbstractWidget {
                 int selEnd = Math.max(selectionStart, cursorPosition);
                 int selStartX = textX + textRenderer.getWidth(text.substring(0, selStart)) - scrollOffset;
                 int selEndX = textX + textRenderer.getWidth(text.substring(0, selEnd)) - scrollOffset;
-                context.fill(selStartX, y + 2, selEndX, y + height - 2, HegemoniaColors.withAlpha(HegemoniaColors.ACCENT_GOLD, 100));
+                context.fill(selStartX, y + 2, selEndX, y + height - 2, HegemoniaDesign.withAlpha(HegemoniaDesign.ACCENT_GOLD, 100));
             }
 
             // Draw text
-            context.drawText(textRenderer, displayText, displayOffset, textY, HegemoniaColors.INPUT_TEXT, false);
+            context.drawText(textRenderer, displayText, displayOffset, textY, HegemoniaDesign.INPUT_TEXT, false);
 
             // Draw cursor
             if (focused && (cursorBlink / 10) % 2 == 0) {
                 int cursorX = textX + textRenderer.getWidth(text.substring(0, cursorPosition)) - scrollOffset;
-                context.fill(cursorX, y + 3, cursorX + 1, y + height - 3, HegemoniaColors.ACCENT_GOLD);
+                context.fill(cursorX, y + 3, cursorX + 1, y + height - 3, HegemoniaDesign.ACCENT_GOLD);
             }
         }
 

@@ -1,6 +1,6 @@
 package com.hegemonia.client.gui.screen;
 
-import com.hegemonia.client.gui.theme.HegemoniaColors;
+import com.hegemonia.client.gui.theme.HegemoniaDesign;
 import com.hegemonia.client.gui.widget.HegemoniaButton;
 import com.hegemonia.client.gui.widget.HegemoniaListItem;
 import com.hegemonia.client.gui.widget.HegemoniaScrollPanel;
@@ -115,9 +115,9 @@ public class WarDeclarationScreen extends HegemoniaScreen {
             );
 
             int relationColor = switch (data[2]) {
-                case "ENEMY" -> HegemoniaColors.ERROR;
-                case "TRADE_PARTNER" -> HegemoniaColors.GOLD;
-                default -> HegemoniaColors.TEXT_MUTED;
+                case "ENEMY" -> HegemoniaDesign.ERROR;
+                case "TRADE_PARTNER" -> HegemoniaDesign.GOLD;
+                default -> HegemoniaDesign.TEXT_MUTED;
             };
             item.setRightText(data[2], relationColor);
             item.setSelectable(true);
@@ -169,26 +169,26 @@ public class WarDeclarationScreen extends HegemoniaScreen {
     protected void renderContent(DrawContext context, int mouseX, int mouseY, float delta) {
         // Section labels
         context.drawText(textRenderer, "Cible",
-                contentX + 20, contentY + 68, HegemoniaColors.TEXT_MUTED, false);
+                contentX + 20, contentY + 68, HegemoniaDesign.TEXT_MUTED, false);
 
         context.drawText(textRenderer, "Objectif de guerre",
-                contentX + (contentWidth / 2) + 10, contentY + 68, HegemoniaColors.TEXT_MUTED, false);
+                contentX + (contentWidth / 2) + 10, contentY + 68, HegemoniaDesign.TEXT_MUTED, false);
 
         // Selected info at bottom
         int infoY = contentY + 275;
         if (selectedNation != null) {
             context.drawText(textRenderer, "Cible: " + selectedNation,
-                    contentX + 20, infoY, HegemoniaColors.TEXT_PRIMARY, false);
+                    contentX + 20, infoY, HegemoniaDesign.TEXT_PRIMARY, false);
         } else {
             context.drawText(textRenderer, "Selectionnez une nation cible",
-                    contentX + 20, infoY, HegemoniaColors.WARNING, false);
+                    contentX + 20, infoY, HegemoniaDesign.WARNING, false);
         }
 
         // War goal description
         for (String[] goal : WAR_GOALS) {
             if (goal[0].equals(selectedWarGoal)) {
                 context.drawText(textRenderer, goal[2],
-                        contentX + 20, infoY + 18, HegemoniaColors.TEXT_MUTED, false);
+                        contentX + 20, infoY + 18, HegemoniaDesign.TEXT_MUTED, false);
                 break;
             }
         }

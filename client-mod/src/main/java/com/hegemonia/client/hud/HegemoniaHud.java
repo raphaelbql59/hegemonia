@@ -1,7 +1,7 @@
 package com.hegemonia.client.hud;
 
 import com.hegemonia.client.HegemoniaClient;
-import com.hegemonia.client.gui.theme.HegemoniaColors;
+import com.hegemonia.client.gui.theme.HegemoniaDesign;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
@@ -82,8 +82,8 @@ public class HegemoniaHud {
         x += animOffset;
 
         // Draw panel background
-        context.fill(x, y, x + panelWidth, y + panelHeight, HegemoniaColors.PANEL_BACKGROUND);
-        context.fill(x, y, x + 3, y + panelHeight, HegemoniaColors.ACCENT_GOLD); // Left border
+        context.fill(x, y, x + panelWidth, y + panelHeight, HegemoniaDesign.PANEL_BACKGROUND);
+        context.fill(x, y, x + 3, y + panelHeight, HegemoniaDesign.ACCENT_GOLD); // Left border
 
         // Draw content
         int contentX = x + padding + 3;
@@ -147,17 +147,17 @@ public class HegemoniaHud {
 
             // Background color based on type
             int bgColor = switch (notif.type) {
-                case "success" -> HegemoniaColors.SUCCESS_DARK;
-                case "error" -> HegemoniaColors.ERROR_DARK;
-                case "warning" -> HegemoniaColors.WARNING_DARK;
-                default -> HegemoniaColors.INFO_DARK;
+                case "success" -> HegemoniaDesign.SUCCESS_DARK;
+                case "error" -> HegemoniaDesign.ERROR_DARK;
+                case "warning" -> HegemoniaDesign.WARNING_DARK;
+                default -> HegemoniaDesign.INFO_DARK;
             };
 
             int borderColor = switch (notif.type) {
-                case "success" -> HegemoniaColors.SUCCESS;
-                case "error" -> HegemoniaColors.ERROR;
-                case "warning" -> HegemoniaColors.WARNING;
-                default -> HegemoniaColors.INFO;
+                case "success" -> HegemoniaDesign.SUCCESS;
+                case "error" -> HegemoniaDesign.ERROR;
+                case "warning" -> HegemoniaDesign.WARNING;
+                default -> HegemoniaDesign.INFO;
             };
 
             // Draw notification

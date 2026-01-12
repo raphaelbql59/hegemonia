@@ -1,6 +1,6 @@
 package com.hegemonia.client.gui.screen;
 
-import com.hegemonia.client.gui.theme.HegemoniaColors;
+import com.hegemonia.client.gui.theme.HegemoniaDesign;
 import com.hegemonia.client.gui.widget.HegemoniaButton;
 import net.minecraft.client.gui.DrawContext;
 
@@ -114,6 +114,6 @@ public class SettingsScreen extends HegemoniaScreen {
         context.drawText(textRenderer, infoText,
                 contentX + (contentWidth - infoWidth) / 2,
                 contentY + contentHeight - 80,
-                HegemoniaColors.TEXT_MUTED, false);
+                HegemoniaDesign.TEXT_MUTED, false);
     }
 }

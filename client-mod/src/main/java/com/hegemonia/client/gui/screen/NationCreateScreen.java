@@ -1,6 +1,6 @@
 package com.hegemonia.client.gui.screen;
 
-import com.hegemonia.client.gui.theme.HegemoniaColors;
+import com.hegemonia.client.gui.theme.HegemoniaDesign;
 import com.hegemonia.client.gui.widget.HegemoniaButton;
 import com.hegemonia.client.gui.widget.HegemoniaTextInput;
 import net.minecraft.client.gui.DrawContext;
@@ -116,13 +116,13 @@ public class NationCreateScreen extends HegemoniaScreen {
 
         // Labels
         context.drawText(textRenderer, "§fNom de la nation",
-                contentX + 30, contentY + 75, HegemoniaColors.TEXT_PRIMARY, true);
+                contentX + 30, contentY + 75, HegemoniaDesign.TEXT_PRIMARY, true);
 
         context.drawText(textRenderer, "§fTag (affiché dans le chat)",
-                contentX + 30, contentY + 145, HegemoniaColors.TEXT_PRIMARY, true);
+                contentX + 30, contentY + 145, HegemoniaDesign.TEXT_PRIMARY, true);
 
         // Cost info
-        context.fill(contentX + 20, contentY + 200, contentX + contentWidth - 20, contentY + 220, HegemoniaColors.BACKGROUND_LIGHT);
+        context.fill(contentX + 20, contentY + 200, contentX + contentWidth - 20, contentY + 220, HegemoniaDesign.BACKGROUND_LIGHT);
         String costText = "§7Coût de création: §e10,000 H";
         int costWidth = textRenderer.getWidth(costText.replaceAll("§.", ""));
         context.drawText(textRenderer, costText, centerX - costWidth / 2, contentY + 206, 0xFFFFFF, true);
@@ -131,7 +131,7 @@ public class NationCreateScreen extends HegemoniaScreen {
         if (errorMessage != null) {
             int errorWidth = textRenderer.getWidth(errorMessage);
             context.drawText(textRenderer, "§c" + errorMessage,
-                    centerX - errorWidth / 2, contentY + 280, HegemoniaColors.ERROR, true);
+                    centerX - errorWidth / 2, contentY + 280, HegemoniaDesign.ERROR, true);
         }
 
         // Preview

@@ -1,7 +1,7 @@
 package com.hegemonia.client.gui.screen;
 
 import com.hegemonia.client.HegemoniaClient;
-import com.hegemonia.client.gui.theme.HegemoniaColors;
+import com.hegemonia.client.gui.theme.HegemoniaDesign;
 import com.hegemonia.client.gui.widget.HegemoniaButton;
 import com.hegemonia.client.gui.widget.HegemoniaListItem;
 import com.hegemonia.client.gui.widget.HegemoniaScrollPanel;
@@ -111,7 +111,7 @@ public class TransferScreen extends HegemoniaScreen {
                     0, 0, itemWidth, 28,
                     data[0]
             );
-            item.setRightText(data[1], HegemoniaColors.TEXT_MUTED);
+            item.setRightText(data[1], HegemoniaDesign.TEXT_MUTED);
             item.setSelectable(true);
             item.setOnClick(() -> {
                 recipientInput.setText(data[0]);
@@ -166,18 +166,18 @@ public class TransferScreen extends HegemoniaScreen {
 
         // Labels
         context.drawText(textRenderer, "Destinataire:",
-                contentX + 20, contentY + 58, HegemoniaColors.TEXT_MUTED, false);
+                contentX + 20, contentY + 58, HegemoniaDesign.TEXT_MUTED, false);
 
         context.drawText(textRenderer, "Montant:",
-                contentX + 20, contentY + 103, HegemoniaColors.TEXT_MUTED, false);
+                contentX + 20, contentY + 103, HegemoniaDesign.TEXT_MUTED, false);
 
         // Balance display
         String balanceText = "Solde: " + MONEY_FORMAT.format(data.balance) + " H";
         context.drawText(textRenderer, balanceText,
-                contentX + 20, contentY + 155, HegemoniaColors.GOLD, false);
+                contentX + 20, contentY + 155, HegemoniaDesign.GOLD, false);
 
         // Recent section header
         context.drawText(textRenderer, "Transferts recents",
-                contentX + 20, contentY + 173, HegemoniaColors.TEXT_MUTED, false);
+                contentX + 20, contentY + 173, HegemoniaDesign.TEXT_MUTED, false);
     }
 }

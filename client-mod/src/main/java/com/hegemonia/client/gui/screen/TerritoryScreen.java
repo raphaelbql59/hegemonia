@@ -1,7 +1,7 @@
 package com.hegemonia.client.gui.screen;
 
 import com.hegemonia.client.HegemoniaClient;
-import com.hegemonia.client.gui.theme.HegemoniaColors;
+import com.hegemonia.client.gui.theme.HegemoniaDesign;
 import com.hegemonia.client.gui.widget.HegemoniaButton;
 import com.hegemonia.client.gui.widget.HegemoniaListItem;
 import com.hegemonia.client.gui.widget.HegemoniaPanel;
@@ -98,9 +98,9 @@ public class TerritoryScreen extends HegemoniaScreen {
                     "Chunk [" + data[0] + "] - " + data[1]
             );
             int statusColor = switch (data[2]) {
-                case "Protege" -> HegemoniaColors.SUCCESS;
-                case "Frontiere" -> HegemoniaColors.WARNING;
-                default -> HegemoniaColors.TEXT_MUTED;
+                case "Protege" -> HegemoniaDesign.SUCCESS;
+                case "Frontiere" -> HegemoniaDesign.WARNING;
+                default -> HegemoniaDesign.TEXT_MUTED;
             };
             item.setRightText(data[2], statusColor);
             item.setSelectable(true);
@@ -127,23 +127,23 @@ public class TerritoryScreen extends HegemoniaScreen {
         int col3 = contentX + 330;
 
         // Chunks owned
-        context.drawText(textRenderer, "Chunks:", col1, statsY, HegemoniaColors.TEXT_MUTED, false);
+        context.drawText(textRenderer, "Chunks:", col1, statsY, HegemoniaDesign.TEXT_MUTED, false);
         String chunksText = totalChunks + "/" + maxChunks;
-        int chunksColor = totalChunks >= maxChunks ? HegemoniaColors.ERROR : HegemoniaColors.TEXT_PRIMARY;
+        int chunksColor = totalChunks >= maxChunks ? HegemoniaDesign.ERROR : HegemoniaDesign.TEXT_PRIMARY;
         context.drawText(textRenderer, chunksText, col1 + 50, statsY, chunksColor, false);
 
         // Claim cost
         int claimCost = 100 + (totalChunks * 10);
-        context.drawText(textRenderer, "Cout:", col2, statsY, HegemoniaColors.TEXT_MUTED, false);
-        context.drawText(textRenderer, claimCost + " H", col2 + 40, statsY, HegemoniaColors.GOLD, false);
+        context.drawText(textRenderer, "Cout:", col2, statsY, HegemoniaDesign.TEXT_MUTED, false);
+        context.drawText(textRenderer, claimCost + " H", col2 + 40, statsY, HegemoniaDesign.GOLD, false);
 
         // Upkeep
         int upkeep = totalChunks * 5;
-        context.drawText(textRenderer, "Entretien:", col3, statsY, HegemoniaColors.TEXT_MUTED, false);
-        context.drawText(textRenderer, upkeep + " H/jour", col3 + 60, statsY, HegemoniaColors.WARNING, false);
+        context.drawText(textRenderer, "Entretien:", col3, statsY, HegemoniaDesign.TEXT_MUTED, false);
+        context.drawText(textRenderer, upkeep + " H/jour", col3 + 60, statsY, HegemoniaDesign.WARNING, false);
 
         // Section header
         context.drawText(textRenderer, "Chunks revendiques (" + totalChunks + ")",
-                contentX + 20, contentY + 108, HegemoniaColors.TEXT_MUTED, false);
+                contentX + 20, contentY + 108, HegemoniaDesign.TEXT_MUTED, false);
     }
 }

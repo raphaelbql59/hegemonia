@@ -1,6 +1,6 @@
 package com.hegemonia.client.gui.widget;
 
-import com.hegemonia.client.gui.theme.HegemoniaColors;
+import com.hegemonia.client.gui.theme.HegemoniaDesign;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.PressableWidget;
@@ -46,16 +46,16 @@ public class HegemoniaInventoryButton extends PressableWidget {
         int glowAlpha = (int) ((pulse + hoverProgress * 0.7f) * 80);
 
         // Background with rounded corners effect (simulated)
-        int bgColor = HegemoniaColors.withAlpha(0x1a1a24, 230);
-        int borderColor = HegemoniaColors.lerp(
-                HegemoniaColors.withAlpha(HegemoniaColors.ACCENT_GOLD, 100),
-                HegemoniaColors.ACCENT_GOLD,
+        int bgColor = HegemoniaDesign.withAlpha(0x1a1a24, 230);
+        int borderColor = HegemoniaDesign.lerp(
+                HegemoniaDesign.withAlpha(HegemoniaDesign.ACCENT_GOLD, 100),
+                HegemoniaDesign.ACCENT_GOLD,
                 hoverProgress
         );
 
         // Glow effect
         if (glowAlpha > 0) {
-            int glowColor = HegemoniaColors.withAlpha(HegemoniaColors.ACCENT_GOLD, glowAlpha);
+            int glowColor = HegemoniaDesign.withAlpha(HegemoniaDesign.ACCENT_GOLD, glowAlpha);
             context.fill(x - 2, y - 2, x + width + 2, y + height + 2, glowColor);
         }
 
@@ -69,7 +69,7 @@ public class HegemoniaInventoryButton extends PressableWidget {
         context.fill(x + width - 1, y, x + width, y + height, borderColor); // Right
 
         // Crown/Logo icon (simplified H symbol)
-        int iconColor = HegemoniaColors.lerp(HegemoniaColors.ACCENT_GOLD, 0xFFFFD700, hoverProgress);
+        int iconColor = HegemoniaDesign.lerp(HegemoniaDesign.ACCENT_GOLD, 0xFFFFD700, hoverProgress);
 
         // Draw stylized "H" for Hegemonia
         int centerX = x + width / 2;
@@ -92,7 +92,7 @@ public class HegemoniaInventoryButton extends PressableWidget {
         if (hoverProgress > 0) {
             int highlightAlpha = (int) (40 * hoverProgress);
             context.fill(x + 1, y + 1, x + width - 1, y + height - 1,
-                    HegemoniaColors.withAlpha(0xFFFFFF, highlightAlpha));
+                    HegemoniaDesign.withAlpha(0xFFFFFF, highlightAlpha));
         }
     }
 

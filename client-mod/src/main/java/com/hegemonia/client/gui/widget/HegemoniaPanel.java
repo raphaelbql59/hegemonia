@@ -1,6 +1,6 @@
 package com.hegemonia.client.gui.widget;
 
-import com.hegemonia.client.gui.theme.HegemoniaColors;
+import com.hegemonia.client.gui.theme.HegemoniaDesign;
 import net.minecraft.client.gui.DrawContext;
 
 import java.util.ArrayList;
@@ -19,10 +19,10 @@ public class HegemoniaPanel extends AbstractWidget {
     private int titleHeight = 25;
     private int padding = 8;
 
-    private int backgroundColor = HegemoniaColors.PANEL_BACKGROUND;
-    private int headerColor = HegemoniaColors.PANEL_HEADER;
-    private int borderColor = HegemoniaColors.PANEL_BORDER;
-    private int titleColor = HegemoniaColors.TEXT_TITLE;
+    private int backgroundColor = HegemoniaDesign.PANEL_BACKGROUND;
+    private int headerColor = HegemoniaDesign.PANEL_HEADER;
+    private int borderColor = HegemoniaDesign.PANEL_BORDER;
+    private int titleColor = HegemoniaDesign.TEXT_TITLE;
 
     private final List<HegemoniaWidget> children = new ArrayList<>();
 

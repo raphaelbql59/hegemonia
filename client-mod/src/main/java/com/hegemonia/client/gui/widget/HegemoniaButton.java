@@ -1,6 +1,6 @@
 package com.hegemonia.client.gui.widget;
 
-import com.hegemonia.client.gui.theme.HegemoniaColors;
+import com.hegemonia.client.gui.theme.HegemoniaDesign;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.sound.SoundEvents;
@@ -59,7 +59,7 @@ public class HegemoniaButton extends AbstractWidget {
 
         // Draw border
         int borderAlpha = (int) (255 * (0.5f + hoverProgress * 0.5f));
-        int animatedBorder = HegemoniaColors.withAlpha(borderColor, borderAlpha);
+        int animatedBorder = HegemoniaDesign.withAlpha(borderColor, borderAlpha);
         context.fill(x, y, x + width, y + 1, animatedBorder); // Top
         context.fill(x, y + height - 1, x + width, y + height, animatedBorder); // Bottom
         context.fill(x, y, x + 1, y + height, animatedBorder); // Left
@@ -68,7 +68,7 @@ public class HegemoniaButton extends AbstractWidget {
         // Draw hover glow effect
         if (hoverProgress > 0 && enabled) {
             int glowAlpha = (int) (30 * hoverProgress);
-            int glowColor = HegemoniaColors.withAlpha(borderColor, glowAlpha);
+            int glowColor = HegemoniaDesign.withAlpha(borderColor, glowAlpha);
             context.fill(x + 1, y + 1, x + width - 1, y + height - 1, glowColor);
         }
 
@@ -108,33 +108,33 @@ public class HegemoniaButton extends AbstractWidget {
     }
 
     private int getBackgroundColor() {
-        if (!enabled) return HegemoniaColors.BUTTON_DISABLED;
+        if (!enabled) return HegemoniaDesign.BUTTON_DISABLED;
 
         return switch (style) {
-            case PRIMARY -> pressed ? HegemoniaColors.BUTTON_PRESSED :
-                    (hovered ? HegemoniaColors.BUTTON_PRIMARY_HOVER : HegemoniaColors.BUTTON_PRIMARY);
-            case DANGER -> pressed ? HegemoniaColors.BUTTON_PRESSED :
-                    (hovered ? HegemoniaColors.BUTTON_DANGER_HOVER : HegemoniaColors.BUTTON_DANGER);
-            case GHOST -> hovered ? HegemoniaColors.withAlpha(HegemoniaColors.BUTTON_HOVER, 128) : 0x00000000;
-            default -> pressed ? HegemoniaColors.BUTTON_PRESSED :
-                    (hovered ? HegemoniaColors.BUTTON_HOVER : HegemoniaColors.BUTTON_DEFAULT);
+            case PRIMARY -> pressed ? HegemoniaDesign.BUTTON_PRESSED :
+                    (hovered ? HegemoniaDesign.BUTTON_PRIMARY_HOVER : HegemoniaDesign.BUTTON_PRIMARY);
+            case DANGER -> pressed ? HegemoniaDesign.BUTTON_PRESSED :
+                    (hovered ? HegemoniaDesign.BUTTON_DANGER_HOVER : HegemoniaDesign.BUTTON_DANGER);
+            case GHOST -> hovered ? HegemoniaDesign.withAlpha(HegemoniaDesign.BUTTON_HOVER, 128) : 0x00000000;
+            default -> pressed ? HegemoniaDesign.BUTTON_PRESSED :
+                    (hovered ? HegemoniaDesign.BUTTON_HOVER : HegemoniaDesign.BUTTON_DEFAULT);
         };
     }
 
     private int getBorderColor() {
-        if (!enabled) return HegemoniaColors.BUTTON_BORDER;
+        if (!enabled) return HegemoniaDesign.BUTTON_BORDER;
 
         return switch (style) {
-            case PRIMARY -> HegemoniaColors.BUTTON_PRIMARY_BORDER;
-            case DANGER -> HegemoniaColors.BUTTON_DANGER_BORDER;
-            case GHOST -> hovered ? HegemoniaColors.ACCENT_GOLD : 0x00000000;
-            default -> hovered ? HegemoniaColors.BUTTON_BORDER_HOVER : HegemoniaColors.BUTTON_BORDER;
+            case PRIMARY -> HegemoniaDesign.BUTTON_PRIMARY_BORDER;
+            case DANGER -> HegemoniaDesign.BUTTON_DANGER_BORDER;
+            case GHOST -> hovered ? HegemoniaDesign.ACCENT_GOLD : 0x00000000;
+            default -> hovered ? HegemoniaDesign.BUTTON_BORDER_HOVER : HegemoniaDesign.BUTTON_BORDER;
         };
     }
 
     private int getTextColor() {
-        if (!enabled) return HegemoniaColors.TEXT_MUTED;
-        return HegemoniaColors.TEXT_PRIMARY;
+        if (!enabled) return HegemoniaDesign.TEXT_MUTED;
+        return HegemoniaDesign.TEXT_PRIMARY;
     }
 
     @Override

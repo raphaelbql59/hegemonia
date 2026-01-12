@@ -1,6 +1,6 @@
 package com.hegemonia.client.gui.widget;
 
-import com.hegemonia.client.gui.theme.HegemoniaColors;
+import com.hegemonia.client.gui.theme.HegemoniaDesign;
 import net.minecraft.client.gui.DrawContext;
 
 import java.util.function.Consumer;
@@ -13,18 +13,18 @@ public class HegemoniaListItem extends AbstractWidget {
     private String title;
     private String subtitle;
     private String rightText;
-    private int rightTextColor = HegemoniaColors.TEXT_SECONDARY;
+    private int rightTextColor = HegemoniaDesign.TEXT_SECONDARY;
 
     private String icon;
-    private int iconColor = HegemoniaColors.ACCENT_GOLD;
+    private int iconColor = HegemoniaDesign.ACCENT_GOLD;
 
     private boolean selected = false;
     private boolean selectable = true;
     private Consumer<HegemoniaListItem> onClick;
 
-    private int backgroundColor = HegemoniaColors.BACKGROUND_MEDIUM;
-    private int hoverColor = HegemoniaColors.BACKGROUND_LIGHT;
-    private int selectedColor = HegemoniaColors.withAlpha(HegemoniaColors.ACCENT_GOLD, 40);
+    private int backgroundColor = HegemoniaDesign.BACKGROUND_MEDIUM;
+    private int hoverColor = HegemoniaDesign.BACKGROUND_LIGHT;
+    private int selectedColor = HegemoniaDesign.withAlpha(HegemoniaDesign.ACCENT_GOLD, 40);
 
     public HegemoniaListItem(int x, int y, int width, int height, String title) {
         super(x, y, width, height);
@@ -45,7 +45,7 @@ public class HegemoniaListItem extends AbstractWidget {
 
         // Left accent for selected
         if (selected) {
-            context.fill(x, y, x + 3, y + height, HegemoniaColors.ACCENT_GOLD);
+            context.fill(x, y, x + 3, y + height, HegemoniaDesign.ACCENT_GOLD);
         }
 
         // Content positioning
@@ -61,11 +61,11 @@ public class HegemoniaListItem extends AbstractWidget {
         // Title and subtitle
         if (subtitle != null && !subtitle.isEmpty()) {
             // Two lines
-            drawText(context, title, contentX, y + 4, HegemoniaColors.TEXT_PRIMARY);
-            drawText(context, subtitle, contentX, y + 16, HegemoniaColors.TEXT_SECONDARY);
+            drawText(context, title, contentX, y + 4, HegemoniaDesign.TEXT_PRIMARY);
+            drawText(context, subtitle, contentX, y + 16, HegemoniaDesign.TEXT_SECONDARY);
         } else {
             // Single line centered
-            drawText(context, title, contentX, y + (height - 8) / 2, HegemoniaColors.TEXT_PRIMARY);
+            drawText(context, title, contentX, y + (height - 8) / 2, HegemoniaDesign.TEXT_PRIMARY);
         }
 
         // Right text
@@ -75,7 +75,7 @@ public class HegemoniaListItem extends AbstractWidget {
         }
 
         // Bottom border
-        context.fill(x + 4, y + height - 1, x + width - 4, y + height, HegemoniaColors.withAlpha(HegemoniaColors.PANEL_BORDER, 100));
+        context.fill(x + 4, y + height - 1, x + width - 4, y + height, HegemoniaDesign.withAlpha(HegemoniaDesign.PANEL_BORDER, 100));
     }
 
     @Override

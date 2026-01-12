@@ -1,6 +1,6 @@
 package com.hegemonia.client.gui.widget;
 
-import com.hegemonia.client.gui.theme.HegemoniaColors;
+import com.hegemonia.client.gui.theme.HegemoniaDesign;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.util.math.MathHelper;
 
@@ -42,7 +42,7 @@ public class HegemoniaScrollPanel extends AbstractWidget {
         }
 
         // Draw background
-        context.fill(x, y, x + width, y + height, HegemoniaColors.BACKGROUND_DARK);
+        context.fill(x, y, x + width, y + height, HegemoniaDesign.BACKGROUND_DARK);
 
         // Enable scissor for content clipping
         context.enableScissor(x, y, x + width - (showScrollbar && needsScrollbar() ? scrollbarWidth : 0), y + height);
@@ -68,17 +68,17 @@ public class HegemoniaScrollPanel extends AbstractWidget {
         }
 
         // Draw border
-        context.fill(x, y, x + width, y + 1, HegemoniaColors.PANEL_BORDER);
-        context.fill(x, y + height - 1, x + width, y + height, HegemoniaColors.PANEL_BORDER);
-        context.fill(x, y, x + 1, y + height, HegemoniaColors.PANEL_BORDER);
-        context.fill(x + width - 1, y, x + width, y + height, HegemoniaColors.PANEL_BORDER);
+        context.fill(x, y, x + width, y + 1, HegemoniaDesign.PANEL_BORDER);
+        context.fill(x, y + height - 1, x + width, y + height, HegemoniaDesign.PANEL_BORDER);
+        context.fill(x, y, x + 1, y + height, HegemoniaDesign.PANEL_BORDER);
+        context.fill(x + width - 1, y, x + width, y + height, HegemoniaDesign.PANEL_BORDER);
     }
 
     private void renderScrollbar(DrawContext context, int mouseX, int mouseY) {
         int scrollbarX = x + width - scrollbarWidth;
 
         // Track
-        context.fill(scrollbarX, y, x + width, y + height, HegemoniaColors.SCROLLBAR_TRACK);
+        context.fill(scrollbarX, y, x + width, y + height, HegemoniaDesign.SCROLLBAR_TRACK);
 
         // Thumb
         int thumbHeight = Math.max(20, (int) ((float) height / contentHeight * height));
@@ -89,7 +89,7 @@ public class HegemoniaScrollPanel extends AbstractWidget {
                 mouseY >= thumbY && mouseY < thumbY + thumbHeight;
 
         int thumbColor = (draggingScrollbar || thumbHovered) ?
-                HegemoniaColors.SCROLLBAR_THUMB_HOVER : HegemoniaColors.SCROLLBAR_THUMB;
+                HegemoniaDesign.SCROLLBAR_THUMB_HOVER : HegemoniaDesign.SCROLLBAR_THUMB;
 
         context.fill(scrollbarX + 1, thumbY, x + width - 1, thumbY + thumbHeight, thumbColor);
     }

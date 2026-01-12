@@ -1,7 +1,7 @@
 package com.hegemonia.client.gui.screen;
 
 import com.hegemonia.client.HegemoniaClient;
-import com.hegemonia.client.gui.theme.HegemoniaColors;
+import com.hegemonia.client.gui.theme.HegemoniaDesign;
 import com.hegemonia.client.gui.widget.HegemoniaButton;
 import com.hegemonia.client.gui.widget.HegemoniaListItem;
 import com.hegemonia.client.gui.widget.HegemoniaPanel;
@@ -127,7 +127,7 @@ public class NationScreen extends HegemoniaScreen {
                     0, 0, itemWidth, 30,
                     data[0] + " " + data[1]
             );
-            item.setRightText(data[3], data[3].equals("En ligne") ? HegemoniaColors.SUCCESS : HegemoniaColors.TEXT_MUTED);
+            item.setRightText(data[3], data[3].equals("En ligne") ? HegemoniaDesign.SUCCESS : HegemoniaDesign.TEXT_MUTED);
             item.setSelectable(false);
             membersPanel.addChild(item);
         }
@@ -139,11 +139,11 @@ public class NationScreen extends HegemoniaScreen {
 
         // Custom header with nation name
         int headerHeight = 35;
-        context.fill(contentX, contentY, contentX + contentWidth, contentY + headerHeight, HegemoniaColors.PANEL_HEADER);
+        context.fill(contentX, contentY, contentX + contentWidth, contentY + headerHeight, HegemoniaDesign.PANEL_HEADER);
 
         // Nation tag and name
         String nationDisplay = "§b[" + data.nationTag + "] §f" + data.nationName;
-        context.drawText(textRenderer, nationDisplay, contentX + 15, contentY + 12, HegemoniaColors.TEXT_PRIMARY, true);
+        context.drawText(textRenderer, nationDisplay, contentX + 15, contentY + 12, HegemoniaDesign.TEXT_PRIMARY, true);
 
         // Role badge
         String roleColor = switch (data.nationRole) {
@@ -156,7 +156,7 @@ public class NationScreen extends HegemoniaScreen {
         context.drawText(textRenderer, roleText, contentX + contentWidth - roleWidth - 50, contentY + 12, 0xFFFFFF, true);
 
         // Header border
-        context.fill(contentX, contentY + headerHeight - 1, contentX + contentWidth, contentY + headerHeight, HegemoniaColors.ACCENT_BLUE);
+        context.fill(contentX, contentY + headerHeight - 1, contentX + contentWidth, contentY + headerHeight, HegemoniaDesign.ACCENT_BLUE);
     }
 
     @Override
@@ -183,13 +183,13 @@ public class NationScreen extends HegemoniaScreen {
 
         // War status
         if (data.atWar) {
-            context.drawText(textRenderer, "§c⚔ EN GUERRE", infoX, infoY + 10, HegemoniaColors.WAR_ACTIVE, true);
+            context.drawText(textRenderer, "§c⚔ EN GUERRE", infoX, infoY + 10, HegemoniaDesign.WAR_ACTIVE, true);
         } else {
-            context.drawText(textRenderer, "§a☮ En paix", infoX, infoY + 10, HegemoniaColors.WAR_PEACE, true);
+            context.drawText(textRenderer, "§a☮ En paix", infoX, infoY + 10, HegemoniaDesign.WAR_PEACE, true);
         }
 
         // Members header
         context.drawText(textRenderer, "§7Membres (12)",
-                contentX + infoPanelWidth + 30, contentY + 35, HegemoniaColors.TEXT_MUTED, false);
+                contentX + infoPanelWidth + 30, contentY + 35, HegemoniaDesign.TEXT_MUTED, false);
     }
 }

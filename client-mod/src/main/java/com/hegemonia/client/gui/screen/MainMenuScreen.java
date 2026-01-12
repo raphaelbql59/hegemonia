@@ -1,298 +1,400 @@
 package com.hegemonia.client.gui.screen;
 
 import com.hegemonia.client.HegemoniaClient;
-import com.hegemonia.client.gui.theme.HegemoniaColors;
-import com.hegemonia.client.gui.widget.HegemoniaButton;
+import com.hegemonia.client.gui.theme.HegemoniaDesign;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.text.Text;
+import org.lwjgl.glfw.GLFW;
 
 import java.text.DecimalFormat;
 
 /**
- * Main Hegemonia menu - Modern hub for all features
- * Redesigned with card-based layout and smooth animations
+ * HEGEMONIA MAIN MENU
+ * Ultra-modern, Nations Glory inspired design
+ * Professional card-based layout with smooth animations
  */
-public class MainMenuScreen extends HegemoniaScreen {
+public class MainMenuScreen extends Screen {
 
     private static final DecimalFormat MONEY_FORMAT = new DecimalFormat("#,##0.00");
-    private static final DecimalFormat COMPACT_FORMAT = new DecimalFormat("#,##0");
 
-    // Animation
-    private float animationProgress = 0f;
-    private float[] cardAnimations = new float[4];
+    private final HegemoniaClient hegemonia;
+
+    // Layout dimensions
+    private int panelX, panelY, panelWidth, panelHeight;
+    private int contentX, contentY;
+
+    // Animation state
+    private float openAnim = 0f;
+    private float[] cardAnim = new float[6];
+    private int hoveredCard = -1;
+
+    // Card data
+    private static final String[] CARD_TITLES = {"ECONOMIE", "NATION", "GUERRE", "TERRITOIRES", "MARCHE", "BANQUE"};
+    private static final String[] CARD_SUBTITLES = {"Gerez votre fortune", "Votre empire", "Conflits actifs", "Carte du monde", "Achat & Vente", "Epargne & Prets"};
+    private static final String[] CARD_ICONS = {"economy", "nation", "war", "territory", "market", "bank"};
+    private static final int[] CARD_COLORS = {
+            HegemoniaDesign.GOLD,
+            HegemoniaDesign.BLUE,
+            HegemoniaDesign.ERROR,
+            HegemoniaDesign.SUCCESS,
+            HegemoniaDesign.WARNING,
+            HegemoniaDesign.INFO
+    };
 
     public MainMenuScreen() {
-        super("HEGEMONIA");
+        super(Text.literal("Hegemonia"));
+        this.hegemonia = HegemoniaClient.getInstance();
     }
 
     @Override
-    protected void calculateContentArea() {
-        contentWidth = Math.min(520, (int) (screenWidth * 0.85));
-        contentHeight = Math.min(380, (int) (screenHeight * 0.78));
-        contentX = (screenWidth - contentWidth) / 2;
-        contentY = (screenHeight - contentHeight) / 2;
+    protected void init() {
+        super.init();
+
+        // Calculate panel dimensions (centered, max 600x420)
+        panelWidth = Math.min(600, (int)(width * 0.85));
+        panelHeight = Math.min(420, (int)(height * 0.85));
+        panelX = (width - panelWidth) / 2;
+        panelY = (height - panelHeight) / 2;
+
+        contentX = panelX + HegemoniaDesign.SPACE_LG;
+        contentY = panelY + HegemoniaDesign.HEADER_HEIGHT + HegemoniaDesign.SPACE_MD;
     }
 
     @Override
-    protected void initContent() {
-        HegemoniaClient.PlayerData data = hegemonia.getPlayerData();
-
-        int cardWidth = (contentWidth - 70) / 2;
-        int cardHeight = 85;
-        int cardSpacing = 15;
-        int startY = contentY + 95;
-        int leftX = contentX + 20;
-        int rightX = contentX + cardWidth + 35;
-
-        // ═══════════════════════════════════════════════════════════════
-        // ECONOMY CARD (Top Left)
-        // ═══════════════════════════════════════════════════════════════
-        addWidget(new HegemoniaButton(
-                leftX, startY,
-                cardWidth, cardHeight,
-                "",
-                HegemoniaButton.ButtonStyle.DEFAULT,
-                btn -> hegemonia.getScreenManager().openEconomyMenu()
-        ));
-
-        // ═══════════════════════════════════════════════════════════════
-        // NATION CARD (Top Right)
-        // ═══════════════════════════════════════════════════════════════
-        addWidget(new HegemoniaButton(
-                rightX, startY,
-                cardWidth, cardHeight,
-                "",
-                HegemoniaButton.ButtonStyle.DEFAULT,
-                btn -> hegemonia.getScreenManager().openNationMenu()
-        ));
-
-        // ═══════════════════════════════════════════════════════════════
-        // WAR CARD (Bottom Left)
-        // ═══════════════════════════════════════════════════════════════
-        HegemoniaButton warBtn = addWidget(new HegemoniaButton(
-                leftX, startY + cardHeight + cardSpacing,
-                cardWidth, cardHeight,
-                "",
-                data.atWar ? HegemoniaButton.ButtonStyle.DANGER : HegemoniaButton.ButtonStyle.DEFAULT,
-                btn -> hegemonia.getScreenManager().openWarMenu()
-        ));
-        warBtn.setEnabled(data.hasNation());
-
-        // ═══════════════════════════════════════════════════════════════
-        // MAP/TERRITORY CARD (Bottom Right)
-        // ═══════════════════════════════════════════════════════════════
-        addWidget(new HegemoniaButton(
-                rightX, startY + cardHeight + cardSpacing,
-                cardWidth, cardHeight,
-                "",
-                HegemoniaButton.ButtonStyle.DEFAULT,
-                btn -> navigateTo(new TerritoryScreen())
-        ));
-
-        // ═══════════════════════════════════════════════════════════════
-        // BOTTOM ACTION BAR
-        // ═══════════════════════════════════════════════════════════════
-        int bottomY = contentY + contentHeight - 50;
-        int smallBtnWidth = (contentWidth - 60) / 3;
-
-        addWidget(new HegemoniaButton(
-                leftX, bottomY,
-                smallBtnWidth, 32,
-                "Marche",
-                HegemoniaButton.ButtonStyle.GHOST,
-                btn -> hegemonia.getScreenManager().openMarketMenu()
-        ));
-
-        addWidget(new HegemoniaButton(
-                leftX + smallBtnWidth + 10, bottomY,
-                smallBtnWidth, 32,
-                "Banque",
-                HegemoniaButton.ButtonStyle.GHOST,
-                btn -> hegemonia.getScreenManager().openBankMenu()
-        ));
-
-        addWidget(new HegemoniaButton(
-                leftX + (smallBtnWidth + 10) * 2, bottomY,
-                smallBtnWidth, 32,
-                "Reglages",
-                HegemoniaButton.ButtonStyle.GHOST,
-                btn -> hegemonia.getScreenManager().openSettingsMenu()
-        ));
-    }
-
-    @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+    public void render(DrawContext ctx, int mouseX, int mouseY, float delta) {
         // Update animations
-        animationProgress = Math.min(1f, animationProgress + 0.08f);
-        for (int i = 0; i < cardAnimations.length; i++) {
-            float targetDelay = i * 0.15f;
-            if (animationProgress > targetDelay) {
-                cardAnimations[i] = Math.min(1f, cardAnimations[i] + 0.12f);
+        openAnim = Math.min(1f, openAnim + HegemoniaDesign.ANIM_SPEED_FAST);
+        for (int i = 0; i < cardAnim.length; i++) {
+            float targetDelay = i * 0.08f;
+            if (openAnim > targetDelay) {
+                cardAnim[i] = Math.min(1f, cardAnim[i] + HegemoniaDesign.ANIM_SPEED_FAST);
             }
         }
 
-        super.render(context, mouseX, mouseY, delta);
+        float eased = HegemoniaDesign.easeOut(openAnim);
+
+        // ═══════════════════════════════════════════════════════════════
+        // BACKGROUND OVERLAY
+        // ═══════════════════════════════════════════════════════════════
+        int overlayAlpha = (int)(230 * eased);
+        ctx.fill(0, 0, width, height, HegemoniaDesign.withAlpha(0x000000, overlayAlpha));
+
+        // ═══════════════════════════════════════════════════════════════
+        // MAIN PANEL
+        // ═══════════════════════════════════════════════════════════════
+        int panelAlpha = (int)(255 * eased);
+
+        // Panel background
+        ctx.fill(panelX, panelY, panelX + panelWidth, panelY + panelHeight,
+                HegemoniaDesign.withAlpha(HegemoniaDesign.BG_PANEL, panelAlpha));
+
+        // Panel border with gold accent
+        HegemoniaDesign.drawPanelBorder(ctx, panelX, panelY, panelWidth, panelHeight,
+                HegemoniaDesign.withAlpha(HegemoniaDesign.BORDER_DEFAULT, panelAlpha),
+                HegemoniaDesign.withAlpha(HegemoniaDesign.GOLD, panelAlpha));
+
+        // ═══════════════════════════════════════════════════════════════
+        // HEADER
+        // ═══════════════════════════════════════════════════════════════
+        renderHeader(ctx, mouseX, mouseY, eased);
+
+        // ═══════════════════════════════════════════════════════════════
+        // CARDS GRID (2x3)
+        // ═══════════════════════════════════════════════════════════════
+        renderCards(ctx, mouseX, mouseY, delta);
+
+        // ═══════════════════════════════════════════════════════════════
+        // FOOTER
+        // ═══════════════════════════════════════════════════════════════
+        renderFooter(ctx, mouseX, mouseY, eased);
+
+        // ═══════════════════════════════════════════════════════════════
+        // CLOSE BUTTON
+        // ═══════════════════════════════════════════════════════════════
+        renderCloseButton(ctx, mouseX, mouseY);
     }
 
-    @Override
-    protected void renderHeader(DrawContext context, int mouseX, int mouseY, float delta) {
+    private void renderHeader(DrawContext ctx, int mouseX, int mouseY, float anim) {
         HegemoniaClient.PlayerData data = hegemonia.getPlayerData();
+        int alpha = (int)(255 * anim);
 
-        // Header background with gradient effect
-        int headerHeight = 75;
-        context.fill(contentX, contentY, contentX + contentWidth, contentY + headerHeight,
-                HegemoniaColors.withAlpha(HegemoniaColors.PANEL_HEADER, 250));
+        // Header background
+        ctx.fill(panelX + 1, panelY + 2, panelX + panelWidth - 1, panelY + HegemoniaDesign.HEADER_HEIGHT,
+                HegemoniaDesign.withAlpha(HegemoniaDesign.BG_PANEL_HEADER, alpha));
 
-        // Accent line at top
-        context.fill(contentX, contentY, contentX + contentWidth, contentY + 3, HegemoniaColors.ACCENT_GOLD);
+        // Header bottom divider
+        ctx.fill(panelX + 1, panelY + HegemoniaDesign.HEADER_HEIGHT - 1,
+                panelX + panelWidth - 1, panelY + HegemoniaDesign.HEADER_HEIGHT,
+                HegemoniaDesign.withAlpha(HegemoniaDesign.BORDER_SUBTLE, alpha));
 
-        // Logo and title
-        int logoX = contentX + 20;
-        int logoY = contentY + 18;
+        // Logo
+        int logoSize = 32;
+        int logoX = panelX + HegemoniaDesign.SPACE_MD;
+        int logoY = panelY + (HegemoniaDesign.HEADER_HEIGHT - logoSize) / 2 + 1;
 
-        // Draw crown icon
-        drawCrownIcon(context, logoX, logoY + 2, HegemoniaColors.ACCENT_GOLD);
+        // Draw logo texture
+        ctx.drawTexture(HegemoniaDesign.LOGO, logoX, logoY, 0, 0, logoSize, logoSize, logoSize, logoSize);
 
         // Title
-        context.drawText(textRenderer, "HEGEMONIA",
-                logoX + 28, logoY, HegemoniaColors.ACCENT_GOLD, true);
-        context.drawText(textRenderer, "Simulation Geopolitique",
-                logoX + 28, logoY + 14, HegemoniaColors.TEXT_MUTED, false);
+        int titleX = logoX + logoSize + HegemoniaDesign.SPACE_SM;
+        ctx.drawText(textRenderer, "HEGEMONIA",
+                titleX, logoY + 4, HegemoniaDesign.withAlpha(HegemoniaDesign.GOLD, alpha), true);
+        ctx.drawText(textRenderer, "Simulation Geopolitique",
+                titleX, logoY + 16, HegemoniaDesign.withAlpha(HegemoniaDesign.TEXT_MUTED, alpha), false);
 
-        // Player welcome message
+        // Player info (right side)
         String playerName = client != null && client.player != null ? client.player.getName().getString() : "Joueur";
-        context.drawText(textRenderer, "Bienvenue, " + playerName,
-                logoX, logoY + 38, HegemoniaColors.TEXT_SECONDARY, false);
+        String balance = MONEY_FORMAT.format(data.getTotalBalance()) + " H";
 
-        // Balance display (right side)
-        String balanceLabel = "Fortune totale";
-        String balanceValue = MONEY_FORMAT.format(data.getTotalBalance()) + " H";
-        int balanceLabelWidth = textRenderer.getWidth(balanceLabel);
-        int balanceValueWidth = textRenderer.getWidth(balanceValue);
-        int balanceX = contentX + contentWidth - Math.max(balanceLabelWidth, balanceValueWidth) - 25;
+        int rightX = panelX + panelWidth - HegemoniaDesign.SPACE_MD;
 
-        context.drawText(textRenderer, balanceLabel,
-                balanceX, logoY + 5, HegemoniaColors.TEXT_MUTED, false);
-        context.drawText(textRenderer, balanceValue,
-                balanceX, logoY + 18, HegemoniaColors.ACCENT_GOLD, true);
+        // Balance
+        int balanceWidth = textRenderer.getWidth(balance);
+        ctx.drawText(textRenderer, balance,
+                rightX - balanceWidth - 24, logoY + 4,
+                HegemoniaDesign.withAlpha(HegemoniaDesign.GOLD, alpha), true);
 
-        // Nation indicator
+        // Player name
+        int nameWidth = textRenderer.getWidth(playerName);
+        ctx.drawText(textRenderer, playerName,
+                rightX - nameWidth - 24, logoY + 16,
+                HegemoniaDesign.withAlpha(HegemoniaDesign.TEXT_SECONDARY, alpha), false);
+
+        // Nation tag
         if (data.hasNation()) {
-            String nationTag = "[" + data.nationTag + "]";
-            context.drawText(textRenderer, nationTag,
-                    balanceX, logoY + 38, HegemoniaColors.ACCENT_BLUE, false);
+            String tag = "[" + data.nationTag + "]";
+            int tagWidth = textRenderer.getWidth(tag);
+            ctx.drawText(textRenderer, tag,
+                    rightX - tagWidth - 24, logoY + 28,
+                    HegemoniaDesign.withAlpha(HegemoniaDesign.BLUE, alpha), false);
+        }
+    }
+
+    private void renderCards(DrawContext ctx, int mouseX, int mouseY, float delta) {
+        HegemoniaClient.PlayerData data = hegemonia.getPlayerData();
+
+        // Card grid layout
+        int cardWidth = (panelWidth - HegemoniaDesign.SPACE_LG * 2 - HegemoniaDesign.SPACE_MD * 2) / 3;
+        int cardHeight = HegemoniaDesign.CARD_HEIGHT;
+        int cardSpacingX = HegemoniaDesign.SPACE_MD;
+        int cardSpacingY = HegemoniaDesign.SPACE_MD;
+
+        int startX = contentX;
+        int startY = contentY;
+
+        hoveredCard = -1;
+
+        for (int i = 0; i < 6; i++) {
+            int col = i % 3;
+            int row = i / 3;
+
+            int cardX = startX + col * (cardWidth + cardSpacingX);
+            int cardY = startY + row * (cardHeight + cardSpacingY);
+
+            float anim = HegemoniaDesign.easeOut(cardAnim[i]);
+            if (anim < 0.01f) continue;
+
+            boolean hovered = mouseX >= cardX && mouseX < cardX + cardWidth &&
+                    mouseY >= cardY && mouseY < cardY + cardHeight;
+
+            if (hovered) hoveredCard = i;
+
+            // Check if card is enabled
+            boolean enabled = true;
+            if (i == 2 && !data.hasNation()) enabled = false; // War requires nation
+
+            int alpha = (int)(255 * anim);
+
+            // Card background
+            int bgColor = hovered && enabled ? HegemoniaDesign.BG_CARD_HOVER : HegemoniaDesign.BG_CARD;
+            if (!enabled) bgColor = HegemoniaDesign.withAlpha(HegemoniaDesign.BG_CARD, 128);
+
+            ctx.fill(cardX, cardY, cardX + cardWidth, cardY + cardHeight,
+                    HegemoniaDesign.withAlpha(bgColor, alpha));
+
+            // Card border
+            int borderColor = hovered && enabled ? CARD_COLORS[i] : HegemoniaDesign.BORDER_DEFAULT;
+            if (!enabled) borderColor = HegemoniaDesign.TEXT_DISABLED;
+            HegemoniaDesign.drawBorder(ctx, cardX, cardY, cardWidth, cardHeight,
+                    HegemoniaDesign.withAlpha(borderColor, alpha));
+
+            // Accent bar (left)
+            int accentColor = enabled ? CARD_COLORS[i] : HegemoniaDesign.TEXT_DISABLED;
+            ctx.fill(cardX, cardY + 8, cardX + 3, cardY + cardHeight - 8,
+                    HegemoniaDesign.withAlpha(accentColor, alpha));
+
+            // Hover glow
+            if (hovered && enabled) {
+                HegemoniaDesign.drawGlow(ctx, cardX, cardY, cardWidth, cardHeight, CARD_COLORS[i]);
+            }
+
+            // Icon
+            int iconSize = 24;
+            int iconX = cardX + HegemoniaDesign.SPACE_SM + 4;
+            int iconY = cardY + HegemoniaDesign.SPACE_SM;
+            int iconColor = enabled ? CARD_COLORS[i] : HegemoniaDesign.TEXT_DISABLED;
+            HegemoniaDesign.drawIcon(ctx, CARD_ICONS[i], iconX, iconY, iconSize, HegemoniaDesign.withAlpha(iconColor, alpha));
+
+            // Title
+            int textX = iconX + iconSize + HegemoniaDesign.SPACE_SM;
+            int textColor = enabled ? HegemoniaDesign.TEXT_PRIMARY : HegemoniaDesign.TEXT_DISABLED;
+            ctx.drawText(textRenderer, CARD_TITLES[i],
+                    textX, iconY + 2, HegemoniaDesign.withAlpha(textColor, alpha), false);
+
+            // Subtitle
+            ctx.drawText(textRenderer, CARD_SUBTITLES[i],
+                    textX, iconY + 14, HegemoniaDesign.withAlpha(HegemoniaDesign.TEXT_MUTED, alpha), false);
+
+            // Value display (bottom of card)
+            String value = getCardValue(i, data);
+            int valueColor = enabled ? CARD_COLORS[i] : HegemoniaDesign.TEXT_DISABLED;
+            ctx.drawText(textRenderer, value,
+                    cardX + HegemoniaDesign.SPACE_SM + 4, cardY + cardHeight - 18,
+                    HegemoniaDesign.withAlpha(valueColor, alpha), true);
+
+            // Arrow indicator
+            if (enabled) {
+                int arrowX = cardX + cardWidth - 16;
+                int arrowY = cardY + cardHeight / 2 - 4;
+                ctx.drawText(textRenderer, ">",
+                        arrowX, arrowY, HegemoniaDesign.withAlpha(HegemoniaDesign.TEXT_MUTED, (int)(alpha * 0.6f)), false);
+            }
+        }
+    }
+
+    private String getCardValue(int cardIndex, HegemoniaClient.PlayerData data) {
+        return switch (cardIndex) {
+            case 0 -> MONEY_FORMAT.format(data.balance) + " H";
+            case 1 -> data.hasNation() ? data.nationName : "Sans nation";
+            case 2 -> data.atWar ? "EN GUERRE" : "En paix";
+            case 3 -> "Explorer";
+            case 4 -> "Voir offres";
+            case 5 -> MONEY_FORMAT.format(data.bankBalance) + " H";
+            default -> "";
+        };
+    }
+
+    private void renderFooter(DrawContext ctx, int mouseX, int mouseY, float anim) {
+        int alpha = (int)(255 * anim);
+        int footerY = panelY + panelHeight - HegemoniaDesign.FOOTER_HEIGHT;
+
+        // Footer divider
+        ctx.fill(panelX + 1, footerY, panelX + panelWidth - 1, footerY + 1,
+                HegemoniaDesign.withAlpha(HegemoniaDesign.BORDER_SUBTLE, alpha));
+
+        // Settings button
+        int btnY = footerY + (HegemoniaDesign.FOOTER_HEIGHT - HegemoniaDesign.BUTTON_HEIGHT_SM) / 2;
+        int settingsBtnX = panelX + HegemoniaDesign.SPACE_MD;
+        int settingsBtnW = 100;
+
+        boolean settingsHovered = mouseX >= settingsBtnX && mouseX < settingsBtnX + settingsBtnW &&
+                mouseY >= btnY && mouseY < btnY + HegemoniaDesign.BUTTON_HEIGHT_SM;
+
+        int settingsBg = settingsHovered ? HegemoniaDesign.BG_BUTTON_HOVER : HegemoniaDesign.BG_BUTTON;
+        int settingsBorder = settingsHovered ? HegemoniaDesign.TEXT_SECONDARY : HegemoniaDesign.BORDER_DEFAULT;
+
+        ctx.fill(settingsBtnX, btnY, settingsBtnX + settingsBtnW, btnY + HegemoniaDesign.BUTTON_HEIGHT_SM,
+                HegemoniaDesign.withAlpha(settingsBg, alpha));
+        HegemoniaDesign.drawBorder(ctx, settingsBtnX, btnY, settingsBtnW, HegemoniaDesign.BUTTON_HEIGHT_SM,
+                HegemoniaDesign.withAlpha(settingsBorder, alpha));
+
+        String settingsText = "Reglages";
+        int settingsTextW = textRenderer.getWidth(settingsText);
+        ctx.drawText(textRenderer, settingsText,
+                settingsBtnX + (settingsBtnW - settingsTextW) / 2, btnY + 6,
+                HegemoniaDesign.withAlpha(HegemoniaDesign.TEXT_SECONDARY, alpha), false);
+
+        // Version
+        String version = "v1.0.0";
+        ctx.drawText(textRenderer, version,
+                panelX + panelWidth - textRenderer.getWidth(version) - HegemoniaDesign.SPACE_MD,
+                btnY + 6, HegemoniaDesign.withAlpha(HegemoniaDesign.TEXT_MUTED, alpha), false);
+    }
+
+    private void renderCloseButton(DrawContext ctx, int mouseX, int mouseY) {
+        int btnSize = 24;
+        int btnX = panelX + panelWidth - btnSize - 8;
+        int btnY = panelY + 8;
+
+        boolean hovered = mouseX >= btnX && mouseX < btnX + btnSize &&
+                mouseY >= btnY && mouseY < btnY + btnSize;
+
+        int bgColor = hovered ? HegemoniaDesign.withAlpha(HegemoniaDesign.ERROR, 60) : 0;
+        int textColor = hovered ? HegemoniaDesign.ERROR_LIGHT : HegemoniaDesign.TEXT_MUTED;
+
+        if (bgColor != 0) {
+            ctx.fill(btnX, btnY, btnX + btnSize, btnY + btnSize, bgColor);
         }
 
-        // Header bottom border
-        context.fill(contentX, contentY + headerHeight - 1, contentX + contentWidth, contentY + headerHeight,
-                HegemoniaColors.PANEL_BORDER);
+        ctx.drawCenteredTextWithShadow(textRenderer, "X", btnX + btnSize / 2, btnY + 8, textColor);
     }
 
     @Override
-    protected void renderContent(DrawContext context, int mouseX, int mouseY, float delta) {
-        HegemoniaClient.PlayerData data = hegemonia.getPlayerData();
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (button != 0) return super.mouseClicked(mouseX, mouseY, button);
 
-        int cardWidth = (contentWidth - 70) / 2;
-        int cardHeight = 85;
-        int cardSpacing = 15;
-        int startY = contentY + 95;
-        int leftX = contentX + 20;
-        int rightX = contentX + cardWidth + 35;
+        // Close button
+        int closeBtnSize = 24;
+        int closeBtnX = panelX + panelWidth - closeBtnSize - 8;
+        int closeBtnY = panelY + 8;
+        if (mouseX >= closeBtnX && mouseX < closeBtnX + closeBtnSize &&
+                mouseY >= closeBtnY && mouseY < closeBtnY + closeBtnSize) {
+            close();
+            return true;
+        }
 
-        // ═══════════════════════════════════════════════════════════════
-        // RENDER CARD CONTENTS
-        // ═══════════════════════════════════════════════════════════════
+        // Settings button
+        int btnY = panelY + panelHeight - HegemoniaDesign.FOOTER_HEIGHT +
+                (HegemoniaDesign.FOOTER_HEIGHT - HegemoniaDesign.BUTTON_HEIGHT_SM) / 2;
+        int settingsBtnX = panelX + HegemoniaDesign.SPACE_MD;
+        int settingsBtnW = 100;
+        if (mouseX >= settingsBtnX && mouseX < settingsBtnX + settingsBtnW &&
+                mouseY >= btnY && mouseY < btnY + HegemoniaDesign.BUTTON_HEIGHT_SM) {
+            hegemonia.getScreenManager().openSettingsMenu();
+            return true;
+        }
 
-        // Economy Card Content
-        renderCardContent(context, leftX, startY, cardWidth, cardHeight,
-                "Economie", "Gerez votre fortune",
-                MONEY_FORMAT.format(data.balance) + " H",
-                HegemoniaColors.ACCENT_GOLD, 0);
+        // Card clicks
+        if (hoveredCard >= 0) {
+            HegemoniaClient.PlayerData data = hegemonia.getPlayerData();
 
-        // Nation Card Content
-        String nationStatus = data.hasNation() ? data.nationName : "Sans nation";
-        String nationDesc = data.hasNation() ? "Role: " + formatRole(data.nationRole) : "Rejoignez ou creez";
-        renderCardContent(context, rightX, startY, cardWidth, cardHeight,
-                "Nation", nationDesc,
-                nationStatus,
-                HegemoniaColors.ACCENT_BLUE, 1);
+            switch (hoveredCard) {
+                case 0 -> hegemonia.getScreenManager().openEconomyMenu();
+                case 1 -> hegemonia.getScreenManager().openNationMenu();
+                case 2 -> {
+                    if (data.hasNation()) hegemonia.getScreenManager().openWarMenu();
+                }
+                case 3 -> {
+                    if (client != null) client.setScreen(new TerritoryScreen());
+                }
+                case 4 -> hegemonia.getScreenManager().openMarketMenu();
+                case 5 -> hegemonia.getScreenManager().openBankMenu();
+            }
+            return true;
+        }
 
-        // War Card Content
-        String warStatus = data.atWar ? "EN GUERRE" : "En paix";
-        String warDesc = data.atWar ? "vs " + data.warTarget : "Aucun conflit actif";
-        int warColor = data.atWar ? HegemoniaColors.ERROR : HegemoniaColors.SUCCESS;
-        renderCardContent(context, leftX, startY + cardHeight + cardSpacing, cardWidth, cardHeight,
-                "Guerre", warDesc,
-                warStatus,
-                warColor, 2);
+        // Click outside panel closes
+        if (mouseX < panelX || mouseX >= panelX + panelWidth ||
+                mouseY < panelY || mouseY >= panelY + panelHeight) {
+            close();
+            return true;
+        }
 
-        // Territory Card Content
-        renderCardContent(context, rightX, startY + cardHeight + cardSpacing, cardWidth, cardHeight,
-                "Territoires", "Carte et regions",
-                "Explorer",
-                HegemoniaColors.SUCCESS, 3);
-
-        // Version footer
-        String version = "v1.0.0";
-        context.drawText(textRenderer, version,
-                contentX + contentWidth - textRenderer.getWidth(version) - 10,
-                contentY + contentHeight - 15,
-                HegemoniaColors.TEXT_MUTED, false);
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
-    private void renderCardContent(DrawContext context, int x, int y, int width, int height,
-                                   String title, String subtitle, String value, int accentColor, int cardIndex) {
-        float anim = cardAnimations[cardIndex];
-        if (anim < 0.01f) return;
-
-        int alpha = (int) (255 * anim);
-
-        // Card accent bar on left
-        context.fill(x + 2, y + 8, x + 5, y + height - 8,
-                HegemoniaColors.withAlpha(accentColor, alpha));
-
-        // Icon area background
-        context.fill(x + 10, y + 10, x + 35, y + 35,
-                HegemoniaColors.withAlpha(accentColor, (int) (30 * anim)));
-
-        // Title
-        context.drawText(textRenderer, title,
-                x + 42, y + 12, HegemoniaColors.withAlpha(HegemoniaColors.TEXT_PRIMARY, alpha), false);
-
-        // Subtitle
-        context.drawText(textRenderer, subtitle,
-                x + 42, y + 26, HegemoniaColors.withAlpha(HegemoniaColors.TEXT_MUTED, alpha), false);
-
-        // Value (large)
-        String displayValue = value.length() > 18 ? value.substring(0, 16) + "..." : value;
-        context.drawText(textRenderer, displayValue,
-                x + 12, y + height - 25, HegemoniaColors.withAlpha(accentColor, alpha), true);
-
-        // Arrow indicator
-        context.drawText(textRenderer, ">",
-                x + width - 18, y + height / 2 - 4,
-                HegemoniaColors.withAlpha(HegemoniaColors.TEXT_MUTED, (int) (alpha * 0.5f)), false);
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (keyCode == GLFW.GLFW_KEY_ESCAPE || keyCode == GLFW.GLFW_KEY_E) {
+            close();
+            return true;
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
-    private void drawCrownIcon(DrawContext context, int x, int y, int color) {
-        // Simple crown shape
-        // Base
-        context.fill(x + 2, y + 12, x + 18, y + 16, color);
-        // Left peak
-        context.fill(x + 2, y + 4, x + 6, y + 12, color);
-        // Center peak
-        context.fill(x + 8, y, x + 12, y + 12, color);
-        // Right peak
-        context.fill(x + 14, y + 4, x + 18, y + 12, color);
-    }
-
-    private String formatRole(String role) {
-        if (role == null) return "Membre";
-        return switch (role.toUpperCase()) {
-            case "LEADER" -> "Chef";
-            case "OFFICER" -> "Officier";
-            case "MEMBER" -> "Membre";
-            case "RECRUIT" -> "Recrue";
-            default -> role;
-        };
+    @Override
+    public boolean shouldPause() {
+        return false;
     }
 }
