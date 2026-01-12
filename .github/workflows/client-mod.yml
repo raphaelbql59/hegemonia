@@ -74,3 +74,4 @@ jobs:
         run: |
           echo "✅ Client mod v${{ steps.mod_info.outputs.version }} built and released"
           echo "📦 Download: https://github.com/${{ github.repository }}/releases/tag/client-latest"
+
