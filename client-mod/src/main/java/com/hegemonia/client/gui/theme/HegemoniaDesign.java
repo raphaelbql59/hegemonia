@@ -238,7 +238,7 @@ public final class HegemoniaDesign {
         ctx.fill(x, y, x + 3, y + height, color);
     }
 
-    /** Draw a category button (icon style) */
+    /** Draw a category button with proper icon */
     public static void drawCategoryButton(DrawContext ctx, int x, int y, Category cat,
                                           boolean hovered, float hoverAnim, boolean enabled) {
         int size = CATEGORY_BTN_SIZE;
@@ -264,16 +264,172 @@ public final class HegemoniaDesign {
             drawGlow(ctx, x, y, size, size, cat.color, 3);
         }
 
-        // Icon (letter for now, can be replaced with actual icons)
+        // Icon color
         int iconColor = !enabled ? TEXT_DISABLED :
-                        hovered ? lerp(TEXT_MUTED, cat.color, hoverAnim) : TEXT_SECONDARY;
+                        hovered ? lerp(TEXT_SECONDARY, cat.color, hoverAnim) : TEXT_SECONDARY;
 
-        var textRenderer = MinecraftClient.getInstance().textRenderer;
-        int textWidth = textRenderer.getWidth(cat.shortcut);
-        ctx.drawText(textRenderer, cat.shortcut,
-                x + (size - textWidth) / 2,
-                y + (size - 8) / 2,
-                iconColor, false);
+        // Draw category-specific icon
+        int iconX = x + (size - 16) / 2;
+        int iconY = y + (size - 16) / 2;
+        drawCategoryIcon(ctx, iconX, iconY, cat, iconColor);
+    }
+
+    /** Draw category-specific icon (16x16) */
+    public static void drawCategoryIcon(DrawContext ctx, int x, int y, Category cat, int color) {
+        switch (cat) {
+            case ECONOMY -> drawIconCoin(ctx, x, y, color);
+            case BANK -> drawIconBank(ctx, x, y, color);
+            case NATION -> drawIconFlag(ctx, x, y, color);
+            case WAR -> drawIconSwords(ctx, x, y, color);
+            case MARKET -> drawIconMarket(ctx, x, y, color);
+            case DIPLOMACY -> drawIconHandshake(ctx, x, y, color);
+            case TERRITORY -> drawIconMap(ctx, x, y, color);
+            case LEADERBOARD -> drawIconTrophy(ctx, x, y, color);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ICON DRAWING (16x16 pixel icons)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /** Economy icon - Coin */
+    private static void drawIconCoin(DrawContext ctx, int x, int y, int color) {
+        // Outer circle
+        ctx.fill(x + 4, y + 1, x + 12, y + 3, color);   // Top
+        ctx.fill(x + 4, y + 13, x + 12, y + 15, color); // Bottom
+        ctx.fill(x + 1, y + 4, x + 3, y + 12, color);   // Left
+        ctx.fill(x + 13, y + 4, x + 15, y + 12, color); // Right
+        ctx.fill(x + 2, y + 2, x + 4, y + 4, color);    // Corner TL
+        ctx.fill(x + 12, y + 2, x + 14, y + 4, color);  // Corner TR
+        ctx.fill(x + 2, y + 12, x + 4, y + 14, color);  // Corner BL
+        ctx.fill(x + 12, y + 12, x + 14, y + 14, color);// Corner BR
+        // Inner $ symbol
+        ctx.fill(x + 7, y + 3, x + 9, y + 13, color);   // Vertical line
+        ctx.fill(x + 5, y + 5, x + 11, y + 6, color);   // Top horizontal
+        ctx.fill(x + 5, y + 10, x + 11, y + 11, color); // Bottom horizontal
+    }
+
+    /** Bank icon - Building with columns */
+    private static void drawIconBank(DrawContext ctx, int x, int y, int color) {
+        // Roof (triangle)
+        ctx.fill(x + 7, y + 1, x + 9, y + 2, color);
+        ctx.fill(x + 5, y + 2, x + 11, y + 3, color);
+        ctx.fill(x + 3, y + 3, x + 13, y + 4, color);
+        ctx.fill(x + 1, y + 4, x + 15, y + 5, color);
+        // Columns
+        ctx.fill(x + 2, y + 6, x + 4, y + 13, color);   // Left column
+        ctx.fill(x + 7, y + 6, x + 9, y + 13, color);   // Middle column
+        ctx.fill(x + 12, y + 6, x + 14, y + 13, color); // Right column
+        // Base
+        ctx.fill(x + 1, y + 13, x + 15, y + 15, color);
+    }
+
+    /** Nation icon - Flag */
+    private static void drawIconFlag(DrawContext ctx, int x, int y, int color) {
+        // Pole
+        ctx.fill(x + 2, y + 1, x + 4, y + 15, color);
+        // Flag body
+        ctx.fill(x + 4, y + 1, x + 14, y + 9, color);
+        // Wave effect (cut out)
+        ctx.fill(x + 12, y + 3, x + 14, y + 5, BG_TERTIARY);
+        ctx.fill(x + 10, y + 5, x + 12, y + 7, BG_TERTIARY);
+    }
+
+    /** War icon - Crossed swords */
+    private static void drawIconSwords(DrawContext ctx, int x, int y, int color) {
+        // Sword 1 (top-left to bottom-right)
+        ctx.fill(x + 2, y + 1, x + 4, y + 3, color);
+        ctx.fill(x + 3, y + 2, x + 5, y + 4, color);
+        ctx.fill(x + 4, y + 3, x + 6, y + 5, color);
+        ctx.fill(x + 5, y + 4, x + 7, y + 6, color);
+        ctx.fill(x + 6, y + 5, x + 8, y + 7, color);
+        ctx.fill(x + 7, y + 6, x + 9, y + 8, color);
+        ctx.fill(x + 8, y + 7, x + 10, y + 9, color);
+        ctx.fill(x + 9, y + 8, x + 11, y + 10, color);
+        ctx.fill(x + 10, y + 9, x + 12, y + 11, color);
+        ctx.fill(x + 11, y + 10, x + 14, y + 14, color); // Handle
+
+        // Sword 2 (top-right to bottom-left)
+        ctx.fill(x + 12, y + 1, x + 14, y + 3, color);
+        ctx.fill(x + 11, y + 2, x + 13, y + 4, color);
+        ctx.fill(x + 10, y + 3, x + 12, y + 5, color);
+        ctx.fill(x + 9, y + 4, x + 11, y + 6, color);
+        ctx.fill(x + 8, y + 5, x + 10, y + 7, color);
+        ctx.fill(x + 5, y + 8, x + 7, y + 10, color);
+        ctx.fill(x + 4, y + 9, x + 6, y + 11, color);
+        ctx.fill(x + 2, y + 10, x + 5, y + 14, color); // Handle
+    }
+
+    /** Market icon - Shopping basket */
+    private static void drawIconMarket(DrawContext ctx, int x, int y, int color) {
+        // Handle
+        ctx.fill(x + 5, y + 1, x + 11, y + 2, color);
+        ctx.fill(x + 4, y + 2, x + 6, y + 4, color);
+        ctx.fill(x + 10, y + 2, x + 12, y + 4, color);
+        // Basket body (trapezoid)
+        ctx.fill(x + 2, y + 5, x + 14, y + 6, color);
+        ctx.fill(x + 3, y + 6, x + 13, y + 8, color);
+        ctx.fill(x + 3, y + 8, x + 13, y + 10, color);
+        ctx.fill(x + 4, y + 10, x + 12, y + 12, color);
+        ctx.fill(x + 5, y + 12, x + 11, y + 14, color);
+        // Basket lines
+        ctx.fill(x + 6, y + 6, x + 7, y + 13, BG_TERTIARY);
+        ctx.fill(x + 9, y + 6, x + 10, y + 13, BG_TERTIARY);
+    }
+
+    /** Diplomacy icon - Handshake */
+    private static void drawIconHandshake(DrawContext ctx, int x, int y, int color) {
+        // Left arm
+        ctx.fill(x + 1, y + 6, x + 5, y + 8, color);
+        ctx.fill(x + 1, y + 8, x + 3, y + 12, color);
+        // Right arm
+        ctx.fill(x + 11, y + 6, x + 15, y + 8, color);
+        ctx.fill(x + 13, y + 8, x + 15, y + 12, color);
+        // Clasped hands (center)
+        ctx.fill(x + 5, y + 5, x + 11, y + 7, color);
+        ctx.fill(x + 4, y + 7, x + 12, y + 9, color);
+        ctx.fill(x + 5, y + 9, x + 11, y + 11, color);
+        // Fingers detail
+        ctx.fill(x + 6, y + 11, x + 7, y + 13, color);
+        ctx.fill(x + 9, y + 11, x + 10, y + 13, color);
+    }
+
+    /** Territory icon - Map with markers */
+    private static void drawIconMap(DrawContext ctx, int x, int y, int color) {
+        // Map outline
+        ctx.fill(x + 1, y + 2, x + 15, y + 14, color);
+        // Inner area (darker)
+        ctx.fill(x + 2, y + 3, x + 14, y + 13, BG_PRIMARY);
+        // Grid lines
+        ctx.fill(x + 5, y + 3, x + 6, y + 13, withAlpha(color, 100));
+        ctx.fill(x + 10, y + 3, x + 11, y + 13, withAlpha(color, 100));
+        ctx.fill(x + 2, y + 6, x + 14, y + 7, withAlpha(color, 100));
+        ctx.fill(x + 2, y + 10, x + 14, y + 11, withAlpha(color, 100));
+        // Location marker
+        ctx.fill(x + 7, y + 4, x + 9, y + 6, color);
+        ctx.fill(x + 6, y + 6, x + 10, y + 8, color);
+        ctx.fill(x + 7, y + 8, x + 9, y + 9, color);
+    }
+
+    /** Leaderboard icon - Trophy */
+    private static void drawIconTrophy(DrawContext ctx, int x, int y, int color) {
+        // Cup top
+        ctx.fill(x + 3, y + 1, x + 13, y + 3, color);
+        // Cup body
+        ctx.fill(x + 4, y + 3, x + 12, y + 7, color);
+        ctx.fill(x + 5, y + 7, x + 11, y + 8, color);
+        // Handles
+        ctx.fill(x + 1, y + 2, x + 4, y + 4, color);
+        ctx.fill(x + 1, y + 4, x + 3, y + 6, color);
+        ctx.fill(x + 12, y + 2, x + 15, y + 4, color);
+        ctx.fill(x + 13, y + 4, x + 15, y + 6, color);
+        // Stem
+        ctx.fill(x + 7, y + 8, x + 9, y + 11, color);
+        // Base
+        ctx.fill(x + 5, y + 11, x + 11, y + 12, color);
+        ctx.fill(x + 4, y + 12, x + 12, y + 14, color);
+        // Star on cup
+        ctx.fill(x + 7, y + 4, x + 9, y + 6, BG_TERTIARY);
     }
 
     /** Draw tooltip */

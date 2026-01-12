@@ -19,6 +19,8 @@ repositories {
         content { includeGroup "com.terraformersmc" }
     }
     maven { url "https://api.modrinth.com/maven" }
+    // owo-lib for modern GUI system
+    maven { url "https://maven.wispforest.io/releases" }
 }
 
 dependencies {
@@ -32,6 +34,10 @@ dependencies {
     modApi("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}") {
         exclude(group: "net.fabricmc.fabric-api")
     }
+
+    // owo-lib for modern GUI system
+    modImplementation "io.wispforest:owo-lib:${project.owo_version}"
+    include "io.wispforest:owo-sentinel:${project.owo_version}"
 
     // ModMenu integration - disabled for now
     // modCompileOnly "com.terraformersmc:modmenu:${project.modmenu_version}"

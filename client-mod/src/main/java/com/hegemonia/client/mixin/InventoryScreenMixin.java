@@ -20,47 +20,37 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.text.DecimalFormat;
 
 /**
- * HEGEMONIA CUSTOM INVENTORY v2.0
+ * HEGEMONIA CUSTOM INVENTORY v3.0
  *
- * Adds category buttons on both sides of the inventory:
- * LEFT:  Economy, Bank, Nation, War
- * RIGHT: Market, Diplomacy, Territory, Leaderboard
- *
- * Bottom info bar shows: Balance, Bank, Nation, War status
+ * Clean implementation with proper positioning:
+ * - Sidebars positioned outside inventory bounds
+ * - Info bar below inventory
+ * - No overlapping elements
  */
 @Mixin(InventoryScreen.class)
 public abstract class InventoryScreenMixin extends AbstractInventoryScreen<PlayerScreenHandler> implements RecipeBookProvider {
 
-    // Categories - LEFT side
-    @Unique
-    private static final Category[] LEFT_CATEGORIES = {
-        Category.ECONOMY,
-        Category.BANK,
-        Category.NATION,
-        Category.WAR
+    @Unique private static final Category[] LEFT_CATEGORIES = {
+        Category.ECONOMY, Category.BANK, Category.NATION, Category.WAR
     };
 
-    // Categories - RIGHT side
-    @Unique
-    private static final Category[] RIGHT_CATEGORIES = {
-        Category.MARKET,
-        Category.DIPLOMACY,
-        Category.TERRITORY,
-        Category.LEADERBOARD
+    @Unique private static final Category[] RIGHT_CATEGORIES = {
+        Category.MARKET, Category.DIPLOMACY, Category.TERRITORY, Category.LEADERBOARD
     };
 
-    @Unique
-    private static final DecimalFormat MONEY_FORMAT = new DecimalFormat("#,##0");
+    @Unique private static final DecimalFormat MONEY_FORMAT = new DecimalFormat("#,##0");
+    @Unique private static final int BTN_SIZE = 36;      // Button size
+    @Unique private static final int BTN_GAP = 6;        // Gap between buttons
+    @Unique private static final int SIDEBAR_PAD = 8;    // Padding inside sidebar
+    @Unique private static final int SIDEBAR_MARGIN = 8; // Margin from inventory
 
-    // Animation states for each button (8 total)
-    @Unique
-    private final float[] hoverAnims = new float[8];
+    @Unique private final float[] hoverAnims = new float[8];
+    @Unique private int hoveredCategory = -1;
+    @Unique private float openAnim = 0f;
 
-    @Unique
-    private int hoveredCategory = -1;
-
-    @Unique
-    private float openAnim = 0f;
+    // Cached positions (calculated once per frame)
+    @Unique private int leftSidebarX, rightSidebarX, sidebarY, sidebarHeight;
+    @Unique private int infoBarY;
 
     public InventoryScreenMixin(PlayerScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
@@ -69,17 +59,15 @@ public abstract class InventoryScreenMixin extends AbstractInventoryScreen<Playe
     @Inject(method = "init", at = @At("TAIL"))
     private void hegemonia$init(CallbackInfo ci) {
         openAnim = 0f;
-        for (int i = 0; i < 8; i++) {
-            hoverAnims[i] = 0f;
-        }
+        for (int i = 0; i < 8; i++) hoverAnims[i] = 0f;
     }
 
     @Inject(method = "render", at = @At("TAIL"))
     private void hegemonia$render(DrawContext ctx, int mouseX, int mouseY, float delta, CallbackInfo ci) {
-        // Don't render if not connected to Hegemonia
-        if (!HegemoniaClient.getInstance().getPlayerData().isConnectedToHegemonia) {
-            return;
-        }
+        if (!HegemoniaClient.getInstance().getPlayerData().isConnectedToHegemonia) return;
+
+        // Calculate positions
+        hegemonia$calculatePositions();
 
         // Update animations
         hegemonia$updateAnimations(mouseX, mouseY);
@@ -87,28 +75,41 @@ public abstract class InventoryScreenMixin extends AbstractInventoryScreen<Playe
         float ease = HegemoniaDesign.easeOut(openAnim);
         if (ease < 0.01f) return;
 
-        // Get inventory panel position
+        // Render with proper z-ordering
+        hegemonia$renderSidebars(ctx, mouseX, mouseY, ease);
+        hegemonia$renderInfoBar(ctx, ease);
+        hegemonia$renderTooltip(ctx, mouseX, mouseY);
+    }
+
+    @Unique
+    private void hegemonia$calculatePositions() {
         int invX = this.x;
         int invY = this.y;
         int invWidth = this.backgroundWidth;
         int invHeight = this.backgroundHeight;
 
-        // Render components
-        hegemonia$renderLeftCategories(ctx, invX, invY, invHeight, mouseX, mouseY, ease);
-        hegemonia$renderRightCategories(ctx, invX + invWidth, invY, invHeight, mouseX, mouseY, ease);
-        hegemonia$renderInfoBar(ctx, invX, invY + invHeight, invWidth, ease);
-        hegemonia$renderTooltip(ctx, mouseX, mouseY);
+        int sidebarWidth = BTN_SIZE + SIDEBAR_PAD * 2;
+        int totalBtnHeight = 4 * BTN_SIZE + 3 * BTN_GAP;
+
+        // Left sidebar: to the left of inventory
+        leftSidebarX = invX - sidebarWidth - SIDEBAR_MARGIN;
+
+        // Right sidebar: to the right of inventory
+        rightSidebarX = invX + invWidth + SIDEBAR_MARGIN;
+
+        // Vertical centering
+        sidebarY = invY + (invHeight - totalBtnHeight - SIDEBAR_PAD * 2) / 2;
+        sidebarHeight = totalBtnHeight + SIDEBAR_PAD * 2;
+
+        // Info bar: below inventory
+        infoBarY = invY + invHeight + 6;
     }
 
     @Unique
     private void hegemonia$updateAnimations(int mouseX, int mouseY) {
-        // Open animation
         openAnim = Math.min(1f, openAnim + HegemoniaDesign.ANIM_NORMAL);
-
-        // Find hovered category
         hoveredCategory = hegemonia$getHoveredCategory(mouseX, mouseY);
 
-        // Update hover animations
         for (int i = 0; i < 8; i++) {
             float target = (i == hoveredCategory) ? 1f : 0f;
             hoverAnims[i] += (target - hoverAnims[i]) * HegemoniaDesign.ANIM_FAST;
@@ -117,37 +118,24 @@ public abstract class InventoryScreenMixin extends AbstractInventoryScreen<Playe
 
     @Unique
     private int hegemonia$getHoveredCategory(int mouseX, int mouseY) {
-        int invX = this.x;
-        int invY = this.y;
-        int invWidth = this.backgroundWidth;
-        int invHeight = this.backgroundHeight;
+        int sidebarWidth = BTN_SIZE + SIDEBAR_PAD * 2;
 
-        int btnSize = HegemoniaDesign.CATEGORY_BTN_SIZE;
-        int gap = HegemoniaDesign.CATEGORY_BTN_GAP;
-        int sidebarWidth = btnSize + 12;
-
-        // LEFT categories
-        int leftX = invX - sidebarWidth - 4;
-        int totalHeight = 4 * btnSize + 3 * gap;
-        int startY = invY + (invHeight - totalHeight) / 2;
-
+        // Check left sidebar buttons
         for (int i = 0; i < 4; i++) {
-            int btnX = leftX + 6;
-            int btnY = startY + i * (btnSize + gap);
-            if (mouseX >= btnX && mouseX < btnX + btnSize &&
-                mouseY >= btnY && mouseY < btnY + btnSize) {
+            int btnX = leftSidebarX + SIDEBAR_PAD;
+            int btnY = sidebarY + SIDEBAR_PAD + i * (BTN_SIZE + BTN_GAP);
+            if (mouseX >= btnX && mouseX < btnX + BTN_SIZE &&
+                mouseY >= btnY && mouseY < btnY + BTN_SIZE) {
                 return i;
             }
         }
 
-        // RIGHT categories
-        int rightX = invX + invWidth + 4;
-
+        // Check right sidebar buttons
         for (int i = 0; i < 4; i++) {
-            int btnX = rightX + 6;
-            int btnY = startY + i * (btnSize + gap);
-            if (mouseX >= btnX && mouseX < btnX + btnSize &&
-                mouseY >= btnY && mouseY < btnY + btnSize) {
+            int btnX = rightSidebarX + SIDEBAR_PAD;
+            int btnY = sidebarY + SIDEBAR_PAD + i * (BTN_SIZE + BTN_GAP);
+            if (mouseX >= btnX && mouseX < btnX + BTN_SIZE &&
+                mouseY >= btnY && mouseY < btnY + BTN_SIZE) {
                 return 4 + i;
             }
         }
@@ -156,96 +144,106 @@ public abstract class InventoryScreenMixin extends AbstractInventoryScreen<Playe
     }
 
     @Unique
-    private void hegemonia$renderLeftCategories(DrawContext ctx, int invX, int invY, int invHeight,
-                                                 int mouseX, int mouseY, float ease) {
-        int btnSize = HegemoniaDesign.CATEGORY_BTN_SIZE;
-        int gap = HegemoniaDesign.CATEGORY_BTN_GAP;
-        int sidebarWidth = btnSize + 12;
-
-        // Position sidebar to the left of inventory
-        int sidebarX = invX - sidebarWidth - 4;
-        int totalHeight = 4 * btnSize + 3 * gap;
-        int startY = invY + (invHeight - totalHeight) / 2;
-
-        // Animate in from left
-        int animOffset = (int)((1f - ease) * -50);
-        sidebarX += animOffset;
-
-        // Background panel
+    private void hegemonia$renderSidebars(DrawContext ctx, int mouseX, int mouseY, float ease) {
         int alpha = (int)(255 * ease);
-        ctx.fill(sidebarX, startY - 8, sidebarX + sidebarWidth, startY + totalHeight + 8,
-                HegemoniaDesign.withAlpha(HegemoniaDesign.BG_PRIMARY, alpha));
-        ctx.fill(sidebarX + sidebarWidth - 2, startY - 8, sidebarX + sidebarWidth, startY + totalHeight + 8,
-                HegemoniaDesign.withAlpha(HegemoniaDesign.GOLD, alpha));
-        HegemoniaDesign.drawBorder(ctx, sidebarX, startY - 8, sidebarWidth, totalHeight + 16,
-                HegemoniaDesign.withAlpha(HegemoniaDesign.BORDER_DEFAULT, alpha));
-
-        // Draw buttons
+        int sidebarWidth = BTN_SIZE + SIDEBAR_PAD * 2;
         HegemoniaClient.PlayerData data = HegemoniaClient.getInstance().getPlayerData();
 
-        for (int i = 0; i < LEFT_CATEGORIES.length; i++) {
-            Category cat = LEFT_CATEGORIES[i];
-            int btnX = sidebarX + 6;
-            int btnY = startY + i * (btnSize + gap);
+        // === LEFT SIDEBAR ===
+        int leftX = leftSidebarX + (int)((1f - ease) * -40); // Slide in from left
 
+        // Background
+        ctx.fill(leftX, sidebarY, leftX + sidebarWidth, sidebarY + sidebarHeight,
+                HegemoniaDesign.withAlpha(HegemoniaDesign.BG_PRIMARY, alpha));
+        // Gold accent on right edge
+        ctx.fill(leftX + sidebarWidth - 2, sidebarY, leftX + sidebarWidth, sidebarY + sidebarHeight,
+                HegemoniaDesign.withAlpha(HegemoniaDesign.GOLD, alpha));
+        HegemoniaDesign.drawBorder(ctx, leftX, sidebarY, sidebarWidth, sidebarHeight,
+                HegemoniaDesign.withAlpha(HegemoniaDesign.BORDER_DEFAULT, alpha));
+
+        // Left buttons
+        for (int i = 0; i < 4; i++) {
+            Category cat = LEFT_CATEGORIES[i];
+            int btnX = leftX + SIDEBAR_PAD;
+            int btnY = sidebarY + SIDEBAR_PAD + i * (BTN_SIZE + BTN_GAP);
             boolean hovered = (hoveredCategory == i);
             boolean enabled = hegemonia$isCategoryEnabled(cat, data);
-
-            HegemoniaDesign.drawCategoryButton(ctx, btnX, btnY, cat, hovered, hoverAnims[i], enabled);
+            hegemonia$drawButton(ctx, btnX, btnY, cat, hovered, hoverAnims[i], enabled);
         }
-    }
 
-    @Unique
-    private void hegemonia$renderRightCategories(DrawContext ctx, int invRight, int invY, int invHeight,
-                                                  int mouseX, int mouseY, float ease) {
-        int btnSize = HegemoniaDesign.CATEGORY_BTN_SIZE;
-        int gap = HegemoniaDesign.CATEGORY_BTN_GAP;
-        int sidebarWidth = btnSize + 12;
+        // === RIGHT SIDEBAR ===
+        int rightX = rightSidebarX + (int)((1f - ease) * 40); // Slide in from right
 
-        // Position sidebar to the right of inventory
-        int sidebarX = invRight + 4;
-        int totalHeight = 4 * btnSize + 3 * gap;
-        int startY = invY + (invHeight - totalHeight) / 2;
-
-        // Animate in from right
-        int animOffset = (int)((1f - ease) * 50);
-        sidebarX += animOffset;
-
-        // Background panel
-        int alpha = (int)(255 * ease);
-        ctx.fill(sidebarX, startY - 8, sidebarX + sidebarWidth, startY + totalHeight + 8,
+        // Background
+        ctx.fill(rightX, sidebarY, rightX + sidebarWidth, sidebarY + sidebarHeight,
                 HegemoniaDesign.withAlpha(HegemoniaDesign.BG_PRIMARY, alpha));
-        ctx.fill(sidebarX, startY - 8, sidebarX + 2, startY + totalHeight + 8,
+        // Gold accent on left edge
+        ctx.fill(rightX, sidebarY, rightX + 2, sidebarY + sidebarHeight,
                 HegemoniaDesign.withAlpha(HegemoniaDesign.GOLD, alpha));
-        HegemoniaDesign.drawBorder(ctx, sidebarX, startY - 8, sidebarWidth, totalHeight + 16,
+        HegemoniaDesign.drawBorder(ctx, rightX, sidebarY, sidebarWidth, sidebarHeight,
                 HegemoniaDesign.withAlpha(HegemoniaDesign.BORDER_DEFAULT, alpha));
 
-        // Draw buttons
-        HegemoniaClient.PlayerData data = HegemoniaClient.getInstance().getPlayerData();
-
-        for (int i = 0; i < RIGHT_CATEGORIES.length; i++) {
+        // Right buttons
+        for (int i = 0; i < 4; i++) {
             Category cat = RIGHT_CATEGORIES[i];
-            int btnX = sidebarX + 6;
-            int btnY = startY + i * (btnSize + gap);
-
+            int btnX = rightX + SIDEBAR_PAD;
+            int btnY = sidebarY + SIDEBAR_PAD + i * (BTN_SIZE + BTN_GAP);
             boolean hovered = (hoveredCategory == 4 + i);
             boolean enabled = hegemonia$isCategoryEnabled(cat, data);
-
-            HegemoniaDesign.drawCategoryButton(ctx, btnX, btnY, cat, hovered, hoverAnims[4 + i], enabled);
+            hegemonia$drawButton(ctx, btnX, btnY, cat, hovered, hoverAnims[4 + i], enabled);
         }
     }
 
     @Unique
-    private void hegemonia$renderInfoBar(DrawContext ctx, int invX, int invBottom, int invWidth, float ease) {
+    private void hegemonia$drawButton(DrawContext ctx, int x, int y, Category cat,
+                                       boolean hovered, float hoverAnim, boolean enabled) {
+        // Background
+        int bgColor = !enabled ? HegemoniaDesign.BG_PRIMARY :
+                      hovered ? HegemoniaDesign.lerp(HegemoniaDesign.BG_TERTIARY, HegemoniaDesign.BG_HOVER, hoverAnim) :
+                      HegemoniaDesign.BG_TERTIARY;
+        ctx.fill(x, y, x + BTN_SIZE, y + BTN_SIZE, bgColor);
+
+        // Border
+        int borderColor = !enabled ? HegemoniaDesign.BORDER_SUBTLE :
+                          hovered ? HegemoniaDesign.lerp(HegemoniaDesign.BORDER_DEFAULT, cat.color, hoverAnim * 0.7f) :
+                          HegemoniaDesign.BORDER_DEFAULT;
+        HegemoniaDesign.drawBorder(ctx, x, y, BTN_SIZE, BTN_SIZE, borderColor);
+
+        // Accent bar on hover
+        if (hovered && enabled) {
+            int accentAlpha = (int)(255 * hoverAnim);
+            ctx.fill(x, y + 4, x + 2, y + BTN_SIZE - 4, HegemoniaDesign.withAlpha(cat.color, accentAlpha));
+        }
+
+        // Glow on hover
+        if (hoverAnim > 0.1f && enabled) {
+            HegemoniaDesign.drawGlow(ctx, x, y, BTN_SIZE, BTN_SIZE, cat.color, 2);
+        }
+
+        // Icon (centered, 20x20 inside 36x36 button)
+        int iconColor = !enabled ? HegemoniaDesign.TEXT_DISABLED :
+                        hovered ? HegemoniaDesign.lerp(HegemoniaDesign.TEXT_SECONDARY, cat.color, hoverAnim) :
+                        HegemoniaDesign.TEXT_SECONDARY;
+        int iconX = x + (BTN_SIZE - 20) / 2;
+        int iconY = y + (BTN_SIZE - 20) / 2;
+        hegemonia$drawIcon(ctx, iconX, iconY, cat, iconColor);
+    }
+
+    @Unique
+    private void hegemonia$drawIcon(DrawContext ctx, int x, int y, Category cat, int color) {
+        // Draw 20x20 icons (scaled up from 16x16)
+        HegemoniaDesign.drawCategoryIcon(ctx, x + 2, y + 2, cat, color);
+    }
+
+    @Unique
+    private void hegemonia$renderInfoBar(DrawContext ctx, float ease) {
         HegemoniaClient.PlayerData data = HegemoniaClient.getInstance().getPlayerData();
+        int invX = this.x;
+        int invWidth = this.backgroundWidth;
+        int barHeight = 26;
 
-        int barHeight = HegemoniaDesign.INFO_BAR_HEIGHT;
-        int barY = invBottom + 4;
-
-        // Animate in from bottom
-        int animOffset = (int)((1f - ease) * 30);
-        barY += animOffset;
-
+        // Animate from bottom
+        int barY = infoBarY + (int)((1f - ease) * 20);
         int alpha = (int)(255 * ease);
 
         // Background
@@ -256,61 +254,44 @@ public abstract class InventoryScreenMixin extends AbstractInventoryScreen<Playe
         HegemoniaDesign.drawBorder(ctx, invX, barY, invWidth, barHeight,
                 HegemoniaDesign.withAlpha(HegemoniaDesign.BORDER_DEFAULT, alpha));
 
-        // Content
-        int contentY = barY + 7;
-        int x = invX + 8;
-        int spacing = 8;
+        // Content - compact layout
+        int cy = barY + (barHeight - 8) / 2;
+        int cx = invX + 8;
 
-        // Balance
-        String balanceLabel = "Solde:";
-        String balanceValue = MONEY_FORMAT.format(data.balance) + " H";
-        ctx.drawText(textRenderer, balanceLabel, x, contentY,
-                HegemoniaDesign.withAlpha(HegemoniaDesign.TEXT_MUTED, alpha), false);
-        x += textRenderer.getWidth(balanceLabel) + 4;
-        ctx.drawText(textRenderer, balanceValue, x, contentY,
-                HegemoniaDesign.withAlpha(HegemoniaDesign.GOLD, alpha), false);
-        x += textRenderer.getWidth(balanceValue) + spacing;
+        // Balance: $X H
+        ctx.drawText(textRenderer, "$", cx, cy, HegemoniaDesign.withAlpha(HegemoniaDesign.GOLD, alpha), false);
+        cx += 8;
+        String bal = MONEY_FORMAT.format(data.balance) + " H";
+        ctx.drawText(textRenderer, bal, cx, cy, HegemoniaDesign.withAlpha(HegemoniaDesign.TEXT_PRIMARY, alpha), false);
+        cx += textRenderer.getWidth(bal) + 6;
 
         // Separator
-        ctx.fill(x, barY + 6, x + 1, barY + barHeight - 6,
+        ctx.fill(cx, barY + 5, cx + 1, barY + barHeight - 5,
                 HegemoniaDesign.withAlpha(HegemoniaDesign.BORDER_DEFAULT, alpha));
-        x += spacing;
+        cx += 7;
 
-        // Bank
-        String bankLabel = "Banque:";
-        String bankValue = MONEY_FORMAT.format(data.bankBalance) + " H";
-        ctx.drawText(textRenderer, bankLabel, x, contentY,
-                HegemoniaDesign.withAlpha(HegemoniaDesign.TEXT_MUTED, alpha), false);
-        x += textRenderer.getWidth(bankLabel) + 4;
-        ctx.drawText(textRenderer, bankValue, x, contentY,
-                HegemoniaDesign.withAlpha(HegemoniaDesign.BLUE, alpha), false);
-        x += textRenderer.getWidth(bankValue) + spacing;
+        // Bank: B X H
+        ctx.drawText(textRenderer, "B", cx, cy, HegemoniaDesign.withAlpha(HegemoniaDesign.BLUE, alpha), false);
+        cx += 8;
+        String bank = MONEY_FORMAT.format(data.bankBalance) + " H";
+        ctx.drawText(textRenderer, bank, cx, cy, HegemoniaDesign.withAlpha(HegemoniaDesign.TEXT_PRIMARY, alpha), false);
+        cx += textRenderer.getWidth(bank) + 6;
 
-        // Separator
-        ctx.fill(x, barY + 6, x + 1, barY + barHeight - 6,
-                HegemoniaDesign.withAlpha(HegemoniaDesign.BORDER_DEFAULT, alpha));
-        x += spacing;
+        // Nation info (if space available)
+        if (data.hasNation() && cx < invX + invWidth - 80) {
+            ctx.fill(cx, barY + 5, cx + 1, barY + barHeight - 5,
+                    HegemoniaDesign.withAlpha(HegemoniaDesign.BORDER_DEFAULT, alpha));
+            cx += 7;
 
-        // Nation
-        if (data.hasNation()) {
-            String nationText = "[" + data.nationTag + "] " + data.nationName;
-            ctx.drawText(textRenderer, nationText, x, contentY,
-                    HegemoniaDesign.withAlpha(HegemoniaDesign.BLUE, alpha), false);
-            x += textRenderer.getWidth(nationText) + spacing;
+            String tag = "[" + data.nationTag + "]";
+            ctx.drawText(textRenderer, tag, cx, cy, HegemoniaDesign.withAlpha(HegemoniaDesign.BLUE, alpha), false);
+            cx += textRenderer.getWidth(tag) + 4;
 
             // War status
-            if (data.atWar) {
-                ctx.fill(x, barY + 6, x + 1, barY + barHeight - 6,
-                        HegemoniaDesign.withAlpha(HegemoniaDesign.BORDER_DEFAULT, alpha));
-                x += spacing;
-                String warText = "EN GUERRE";
-                ctx.drawText(textRenderer, warText, x, contentY,
+            if (data.atWar && cx < invX + invWidth - 50) {
+                ctx.drawText(textRenderer, "GUERRE", cx, cy,
                         HegemoniaDesign.withAlpha(HegemoniaDesign.ERROR, alpha), false);
             }
-        } else {
-            String noNation = "Pas de nation";
-            ctx.drawText(textRenderer, noNation, x, contentY,
-                    HegemoniaDesign.withAlpha(HegemoniaDesign.TEXT_MUTED, alpha), false);
         }
     }
 
@@ -318,30 +299,39 @@ public abstract class InventoryScreenMixin extends AbstractInventoryScreen<Playe
     private void hegemonia$renderTooltip(DrawContext ctx, int mouseX, int mouseY) {
         if (hoveredCategory < 0) return;
 
-        Category cat;
-        if (hoveredCategory < 4) {
-            cat = LEFT_CATEGORIES[hoveredCategory];
-        } else {
-            cat = RIGHT_CATEGORIES[hoveredCategory - 4];
-        }
+        Category cat = hoveredCategory < 4 ? LEFT_CATEGORIES[hoveredCategory] : RIGHT_CATEGORIES[hoveredCategory - 4];
 
-        // Position tooltip near the button
+        // Calculate tooltip size
+        int titleWidth = textRenderer.getWidth(cat.name);
+        int descWidth = textRenderer.getWidth(cat.description);
+        int tooltipWidth = Math.max(titleWidth, descWidth) + 16;
+        int tooltipHeight = 32;
+
+        // Position tooltip
         int tooltipX, tooltipY;
-        int invX = this.x;
-        int invWidth = this.backgroundWidth;
-
         if (hoveredCategory < 4) {
-            // Left side - tooltip on right of button
-            tooltipX = invX - 4;
-            tooltipY = mouseY - 10;
+            // Left side - show tooltip to the right of cursor
+            tooltipX = mouseX + 12;
         } else {
-            // Right side - tooltip on left of button
-            int tooltipWidth = Math.max(textRenderer.getWidth(cat.name), textRenderer.getWidth(cat.description)) + 24;
-            tooltipX = invX + invWidth + 4 - tooltipWidth;
-            tooltipY = mouseY - 10;
+            // Right side - show tooltip to the left of cursor
+            tooltipX = mouseX - tooltipWidth - 12;
         }
+        tooltipY = mouseY - 8;
 
-        HegemoniaDesign.drawTooltip(ctx, tooltipX, tooltipY, cat.name, cat.description);
+        // Keep on screen
+        if (tooltipX < 4) tooltipX = 4;
+        if (tooltipX + tooltipWidth > width - 4) tooltipX = width - tooltipWidth - 4;
+        if (tooltipY < 4) tooltipY = 4;
+        if (tooltipY + tooltipHeight > height - 4) tooltipY = height - tooltipHeight - 4;
+
+        // Background
+        ctx.fill(tooltipX, tooltipY, tooltipX + tooltipWidth, tooltipY + tooltipHeight, HegemoniaDesign.BG_PRIMARY);
+        ctx.fill(tooltipX, tooltipY, tooltipX + tooltipWidth, tooltipY + 2, cat.color);
+        HegemoniaDesign.drawBorder(ctx, tooltipX, tooltipY, tooltipWidth, tooltipHeight, HegemoniaDesign.BORDER_DEFAULT);
+
+        // Text
+        ctx.drawText(textRenderer, cat.name, tooltipX + 8, tooltipY + 6, cat.color, false);
+        ctx.drawText(textRenderer, cat.description, tooltipX + 8, tooltipY + 18, HegemoniaDesign.TEXT_MUTED, false);
     }
 
     @Unique
@@ -360,17 +350,11 @@ public abstract class InventoryScreenMixin extends AbstractInventoryScreen<Playe
         int clicked = hegemonia$getHoveredCategory((int) mouseX, (int) mouseY);
         if (clicked < 0) return;
 
-        Category cat;
-        if (clicked < 4) {
-            cat = LEFT_CATEGORIES[clicked];
-        } else {
-            cat = RIGHT_CATEGORIES[clicked - 4];
-        }
+        Category cat = clicked < 4 ? LEFT_CATEGORIES[clicked] : RIGHT_CATEGORIES[clicked - 4];
 
         HegemoniaClient.PlayerData data = HegemoniaClient.getInstance().getPlayerData();
         if (!hegemonia$isCategoryEnabled(cat, data)) return;
 
-        // Open the corresponding screen
         hegemonia$openCategory(cat);
         cir.setReturnValue(true);
     }
@@ -386,19 +370,13 @@ public abstract class InventoryScreenMixin extends AbstractInventoryScreen<Playe
             case WAR -> screenManager.openWarMenu();
             case MARKET -> screenManager.openMarketMenu();
             case DIPLOMACY -> {
-                if (client != null) {
-                    client.setScreen(new com.hegemonia.client.gui.screen.DiplomacyScreen());
-                }
+                if (client != null) client.setScreen(new com.hegemonia.client.gui.screen.DiplomacyScreen());
             }
             case TERRITORY -> {
-                if (client != null) {
-                    client.setScreen(new com.hegemonia.client.gui.screen.TerritoryScreen());
-                }
+                if (client != null) client.setScreen(new com.hegemonia.client.gui.screen.TerritoryScreen());
             }
             case LEADERBOARD -> {
-                if (client != null) {
-                    client.setScreen(new com.hegemonia.client.gui.screen.LeaderboardScreen());
-                }
+                if (client != null) client.setScreen(new com.hegemonia.client.gui.screen.LeaderboardScreen());
             }
         }
     }

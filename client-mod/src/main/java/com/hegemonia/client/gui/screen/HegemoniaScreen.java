@@ -241,19 +241,19 @@ public abstract class HegemoniaScreen extends Screen {
             return true;
         }
 
-        // Close button
+        // Close button - returns to inventory
         int closeBtnX = panelX + panelWidth - 32;
         int closeBtnY = panelY + (HegemoniaDesign.HEADER_HEIGHT - 24) / 2;
         if (mouseX >= closeBtnX && mouseX < closeBtnX + 24 &&
                 mouseY >= closeBtnY && mouseY < closeBtnY + 24) {
-            close();
+            goBack();
             return true;
         }
 
-        // Click outside panel closes
+        // Click outside panel - returns to inventory
         if (mouseX < panelX || mouseX >= panelX + panelWidth ||
                 mouseY < panelY || mouseY >= panelY + panelHeight) {
-            close();
+            goBack();
             return true;
         }
 
@@ -291,7 +291,7 @@ public abstract class HegemoniaScreen extends Screen {
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
-            close();
+            goBack();
             return true;
         }
         // Let widgets handle key presses
@@ -314,10 +314,17 @@ public abstract class HegemoniaScreen extends Screen {
     }
 
     /**
-     * Navigate back to main menu
+     * Navigate back - returns to inventory screen
+     * Category screens are opened from inventory, so we return there
      */
     protected void goBack() {
-        hegemonia.getScreenManager().openMainMenu();
+        if (client != null && client.player != null) {
+            // Return to inventory
+            close();
+            client.setScreen(new net.minecraft.client.gui.screen.ingame.InventoryScreen(client.player));
+        } else {
+            close();
+        }
     }
 
     /**
